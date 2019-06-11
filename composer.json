@@ -1,0 +1,25 @@
+{
+    "name": "bediq/bediq-cli",
+    "description": "Ubuntu server management cli interface for bedIQ",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Tareq Hasan",
+            "email": "tareq@wedevs.com"
+        }
+    ],
+    "autoload": {
+        "files": [
+            "cli/includes/helpers.php"
+        ],
+        "psr-4": {
+            "Bediq\\Cli\\": "cli/Bediq/"
+        }
+    },
+    "require": {
+        "php": ">=7.0",
+        "mnapoli/silly": "^1.7",
+        "symfony/process": "^4.0"
+    },
+    "minimum-stability": "dev"
+}
