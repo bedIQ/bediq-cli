@@ -12,6 +12,7 @@ if ( file_exists( __DIR__ . '/../vendor/autoload.php' ) ) {
 
 use Silly\Application;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Bediq\Cli\Site;
 use Bediq\Cli\CommandLine;
 use Bediq\Cli\Apt;
@@ -43,19 +44,28 @@ $app->command('test', function() {
 });
 
 $app->command('provision type', function($type) {
+
     $cli       = new CommandLine();
-    $file      = new Filesystem();
-    $provision = new Provision($cli, $file);
+    $cli->quietly('ls');
+    // $file      = new Filesystem();
+    // $provision = new Provision($cli, $file);
 
-    if (!in_array($type, ['vm', 'container'])) {
-        error('Invalid type provided. Use "vm" or "container"');
-        return;
-    }
+    // if (!in_array($type, ['vm', 'container'])) {
+    //     error('Invalid type provided. Use "vm" or "container"');
+    //     return;
+    // }
 
-    $apt = new Apt();
-    $apt->ensurePhpInstalled();
-    $apt->ensureMysqlInstalled();
-    $apt->ensureNginxInstalled();
+    // $container = 'base';
+    // $mysqlPass = 'root';
+
+    // $apt = new Apt();
+    // $apt->ensurePhpInstalled($container);
+    // $apt->ensureNginxInstalled($container);
+    // $apt->ensureMysqlInstalled($mysqlPass, $container);
+
+    // if ($output->isVerbose()) {
+    //     $output->writeln("hello");
+    // }
 
     // $provision->install();
     // $lxc = new Lxc($cli, $file);

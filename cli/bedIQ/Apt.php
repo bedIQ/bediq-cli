@@ -130,7 +130,7 @@ class Apt
      *
      * @return void
      */
-    public function ensureMysqlInstalled($container = '')
+    public function ensureMysqlInstalled($password, $container = '')
     {
         if (!$this->hasInstalledMysql($container)) {
             info("Installing mariadb...");
@@ -140,7 +140,10 @@ class Apt
             $this->cli->quietly($prefix . 'apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8');
             $this->cli->quietly($prefix . 'apt-add-repository "deb [arch=amd64,i386] http://nyc2.mirrors.digitalocean.com/mariadb/repo/10.3/ubuntu bionic main"');
             $this->cli->quietly($prefix . 'apt-get update');
-            $this->cli->quietly($prefix . 'apt install -y mariadb-server mariadb-client');
+
+            $this->cli->quietly($prefix . "sh -c 'echo \"mariadb-server-10.3 mysql-server/root_password password {$password}\" | debconf-set-selections'");
+            $this->cli->quietly($prefix . "sh -c 'echo \"mariadb-server-10.3 mysql-server/root_password_again password {$password}\" | debconf-set-selections'");
+            $this->cli->runCommand($prefix . 'apt install -yq mariadb-server mariadb-client > /dev/null 2>&1');
         } else {
             warning("mariadb already installed.");
         }
@@ -160,7 +163,7 @@ class Apt
 
             $this->cli->quietly($prefix . 'apt-add-repository ppa:ondrej/php -y');
             $this->cli->quietly($prefix . 'apt-get update');
-            $this->cli->quietly($prefix . 'apt-get install -y php7.3-cli php7.3-common php7.3-curl php7.3-dev php7.3-fpm php7.3-gd php7.3-mbstring php7.3-mysql php7.3-opcache php7.3-xml php7.3-xmlrpc php7.3-zip');
+            $this->cli->quietly($prefix . 'apt-get install -yq php7.3-cli php7.3-common php7.3-curl php7.3-dev php7.3-fpm php7.3-gd php7.3-mbstring php7.3-mysql php7.3-opcache php7.3-xml php7.3-xmlrpc php7.3-zip');
         } else {
             warning("PHP already installed.");
         }
