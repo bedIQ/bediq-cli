@@ -8,12 +8,12 @@ use DomainException;
 class Apt
 {
     private $cli;
-    private $file;
+    private $files;
 
-    public function __construct()
+    public function __construct(CommandLine $cli, Filesystem $files)
     {
-        $this->cli  = new CommandLine();
-        $this->file = new Filesystem();
+        $this->cli  = $cli;
+        $this->files = $files;
     }
 
     /**
@@ -166,6 +166,30 @@ class Apt
             $this->cli->quietly($prefix . 'apt-get install -yq php7.3-cli php7.3-common php7.3-curl php7.3-dev php7.3-fpm php7.3-gd php7.3-mbstring php7.3-mysql php7.3-opcache php7.3-xml php7.3-xmlrpc php7.3-zip');
         } else {
             warning("PHP already installed.");
+        }
+    }
+
+    /**
+     * Ensure WP is installed
+     *
+     * @return void
+     */
+    public function ensureWpInstalled($container = '')
+    {
+        if (!$this->installed('wp', $container)) {
+            info("Installing WP CLI...");
+
+            $prefix = $this->containerExec($container);
+
+            $this->cli->quietly($prefix . "sh -c 'curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar'");
+            $this->cli->quietly($prefix . "sh -c 'chmod +x wp-cli.phar'");
+            $this->cli->quietly($prefix . "sh -c 'mv wp-cli.phar /usr/local/bin/wp'");
+
+            $val = '"\$@"';
+            $this->cli->run($prefix . "sh -c 'cat >> ~/.bashrc << EOF" . PHP_EOL ."wp() {" . PHP_EOL ."  /usr/local/bin/wp {$val} --allow-root" . PHP_EOL ."}" . PHP_EOL ."EOF'");
+
+        } else {
+            warning("WP CLI already installed.");
         }
     }
 

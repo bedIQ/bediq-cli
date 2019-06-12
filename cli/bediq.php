@@ -34,51 +34,107 @@ $version = '1.0';
 $app = new Application('Ubuntu server management cli interface for bedIQ', $version);
 
 $app->command('test', function() {
-    // $apt = new Apt();
-    // $apt->ensureNginxInstalled();
-    $nginx = new Nginx();
+    $file = new Filesystem();
+    $cli  = new CommandLine();
+    $apt  = new Apt($cli, $file);
 
-    $isWp = false;
-    $nginx->createSite('hello.com', $isWp);
-    // $nginx->removeSite('hello.com', $isWp);
+    $apt->ensureWpInstalled('base');
 });
 
-$app->command('provision type', function($type) {
+$app->command('provision:vm', function(SymfonyStyle $io) {
 
     $cli       = new CommandLine();
-    $cli->quietly('ls');
-    // $file      = new Filesystem();
-    // $provision = new Provision($cli, $file);
+    $file      = new Filesystem();
+    $nginx     = new Nginx($file);
+    $provision = new Provision($cli, $file);
+    $apt       = new Apt($cli, $file);
+    $lxd       = new Lxc($cli, $file);
 
-    // if (!in_array($type, ['vm', 'container'])) {
-    //     error('Invalid type provided. Use "vm" or "container"');
-    //     return;
-    // }
+    $cli->run('apt-get update && apt-get upgrade -y');
 
-    // $container = 'base';
-    // $mysqlPass = 'root';
+    // install software-properties-common
+    $cli->quietly('apt-get install -y software-properties-common');
 
-    // $apt = new Apt();
-    // $apt->ensurePhpInstalled($container);
-    // $apt->ensureNginxInstalled($container);
-    // $apt->ensureMysqlInstalled($mysqlPass, $container);
+    // install vim
+    $apt->ensureInstalled('vim');
 
-    // if ($output->isVerbose()) {
-    //     $output->writeln("hello");
-    // }
+    // install nginx
+    $apt->ensureNginxInstalled();
 
-    // $provision->install();
-    // $lxc = new Lxc($cli, $file);
-    // $domain = 'hello-com';
-    // var_dump( $lxc->launch($domain) );
-    // $lxc->remove($domain);
-    // output($lxc->getIp($domain));
+    // install ufw
+    $apt->ensureInstalled('ufw');
+    $provision->enableFirewall();
+
+    // configure SSH keys
+    if (!$file->exists('~/.ssh/id_rsa')) {
+        $cli->quietly('yes y | ssh-keygen -f $HOME/.ssh/id_rsa -t rsa -N ""');
+    }
+
+    // create swap disk
+    $provision->createSwapFile();
+
+    // Setup Unattended Security Upgrades
+    $provision->unattendedUpgrades();
+
+    // Disable The Default Nginx Site
+    $nginx->tweakConfig();
+    $nginx->addCatchAll();
+    $nginx->removeDefault();
+
+    # Install LXD and launch container
+    if (!$apt->installed('zpool')) {
+        $apt->installOrFail('zfsutils-linux');
+    }
+
+    # launch LXD container
+    $lxd->init();
+    $ip = $lxd->launch('base');
+
+    // info('Base IP address: ' . $ip);
 
     info( "bedIQ installed" );
 
-})->descriptions('Provision the bediq VM', [
-    'type' => 'Type of server. "vm" or "container"'
-]);
+})->descriptions('Provision the bediq VM');
+
+$app->command('provision:container container', function($container, SymfonyStyle $io) {
+
+    $cli       = new CommandLine();
+    $file      = new Filesystem();
+    $nginx     = new Nginx($file);
+    $provision = new Provision($cli, $file);
+    $apt       = new Apt($cli, $file);
+    $lxd       = new Lxc($cli, $file);
+
+    if (!$lxd->containerExists($container)) {
+        throw new \Exception("Container {$container} doesn't exist");
+    }
+
+    $verbose = $io->isVerbose();
+
+    if (!$lxd->isRunning($container)) {
+
+        if ($verbose) {
+            $io->writeln("{$container} is stopped. Starting...");
+        }
+
+        $lxd->start($container);
+    }
+
+    if ($verbose) {
+        $io->writeln("Running update...");
+    }
+
+    $lxd->exec($container, 'apt-get update');
+    // $lxd->exec($container, 'apt-get upgrade -y');
+
+    $cli->quietly('apt-get install -y software-properties-common');
+
+    $apt->ensureNginxInstalled($container);
+    $apt->ensurePhpInstalled($container);
+    $apt->ensureMysqlInstalled('root', $container);
+    $apt->ensureWpInstalled($container);
+
+})->descriptions('Provision the LXD container');
 
 $app->command('create site [--type=] [--php=] [--root=]', function ($site, $type, $php, $root) {
 

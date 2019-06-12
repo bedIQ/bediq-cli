@@ -26,6 +26,27 @@ class Provision
         $this->files->ensureDirExists(self::sitePath(), user());
     }
 
+    public function createSwapFile()
+    {
+        if (!$this->files->exists('/swapfile')) {
+            $this->cli->run('fallocate -l 1G /swapfile');
+            $this->cli->run('chmod 600 /swapfile');
+            $this->cli->run('mkswap /swapfile');
+            $this->cli->run('swapon /swapfile');
+            $this->cli->run('echo "/swapfile none swap sw 0 0" >> /etc/fstab');
+            $this->cli->run('echo "vm.swappiness=30" >> /etc/sysctl.conf');
+            $this->cli->run('echo "vm.vfs_cache_pressure=50" >> /etc/sysctl.conf');
+        }
+    }
+
+    public function enableFirewall()
+    {
+        $this->cli->quietly('ufw allow 22');
+        $this->cli->quietly('ufw allow 80');
+        $this->cli->quietly('ufw allow 443');
+        $this->cli->quietly('ufw --force enable');
+    }
+
     public function writeBaseConfiguration()
     {
         if (! $this->files->exists($this->path())) {

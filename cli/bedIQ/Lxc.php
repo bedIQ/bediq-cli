@@ -24,7 +24,7 @@ class Lxc
     {
         $seed = $this->files->get(BEDIQ_STUBS . '/lxd.yaml');
 
-        echo $this->cli->run('cat <<EOF | lxd init --preseed ' . PHP_EOL . $seed . PHP_EOL . 'EOF');
+        $this->cli->run('cat <<EOF | lxd init --preseed ' . PHP_EOL . $seed . PHP_EOL . 'EOF');
     }
 
     /**
@@ -54,6 +54,19 @@ class Lxc
     public function isRunning($container)
     {
         return trim($this->cli->run("lxc list | grep {$container} | awk '{print \$4}'")) == 'RUNNING';
+    }
+
+    /**
+     * Run a command on an instance
+     *
+     * @param  string $container
+     * @param  string $command
+     *
+     * @return string
+     */
+    public function exec($container, $command)
+    {
+        return $this->cli->run("lxc exec {$container} -- $command");
     }
 
     /**
@@ -122,6 +135,10 @@ class Lxc
      */
     public function launch($container)
     {
+        if ($this->containerExists($container)) {
+            throw new \Exception("Container {$container} exists");
+        }
+
         info("Creating container {$container}...");
 
         $this->cli->run("lxc launch ubuntu:18.04 {$container}", function ($code, $output) {
