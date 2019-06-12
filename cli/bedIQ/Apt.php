@@ -22,9 +22,21 @@ class Apt
      * @param  string  $package
      * @return bool
      */
-    function installed($package)
+    public function installed($package, $container = '')
     {
-        return $this->cli->runAsUser('which ' . $package) != '';
+        return $this->cli->runAsUser($this->containerExec($container) . 'which ' . $package) != '';
+    }
+
+    /**
+     * Get the lxc exec command which container prefix
+     *
+     * @param  string $container
+     *
+     * @return string
+     */
+    public function containerExec($container = '')
+    {
+        return $container ? 'lxc exec ' . $container . ' -- ' : '';
     }
 
     /**
@@ -33,9 +45,10 @@ class Apt
      * @param  string  $package
      * @param  array  $options
      * @param  array  $taps
+     *
      * @return void
      */
-    function ensureInstalled($package, $options = [], $taps = [])
+    public function ensureInstalled($package, $options = [], $taps = [])
     {
         if (! $this->installed($package)) {
             $this->installOrFail($package, $options, $taps);
@@ -48,9 +61,10 @@ class Apt
      * @param  string  $package
      * @param  array  $options
      * @param  array  $taps
+     *
      * @return void
      */
-    function installOrFail($package, $options = [], $taps = [])
+    public function installOrFail($package, $options = [], $taps = [])
     {
         info("Installing {$package}...");
 
@@ -66,9 +80,29 @@ class Apt
      *
      * @return bool
      */
-    function hasInstalledNginx()
+    public function hasInstalledNginx($container = '')
     {
-        return $this->installed('nginx');
+        return $this->installed('nginx', $container);
+    }
+
+    /**
+     * Determine if a compatible nginx version is Homebrewed.
+     *
+     * @return bool
+     */
+    public function hasInstalledMysql($container = '')
+    {
+        return $this->installed('mysql', $container);
+    }
+
+    /**
+     * Determine if a compatible nginx version is Homebrewed.
+     *
+     * @return bool
+     */
+    public function hasInstalledPhp($container = '')
+    {
+        return $this->installed('php', $container);
     }
 
     /**
@@ -76,15 +110,59 @@ class Apt
      *
      * @return void
      */
-    function ensureNginxInstalled()
+    public function ensureNginxInstalled($container = '')
     {
-        if (!$this->hasInstalledNginx()) {
+        if (!$this->hasInstalledNginx($container)) {
             info("Installing nginx...");
-            $this->cli->quietly('sudo apt-add-repository ppa:nginx/development -y');
-            $this->cli->quietly('sudo apt-get update');
-            $this->cli->quietly('apt install -y nginx');
+
+            $prefix = $this->containerExec($container);
+
+            $this->cli->quietly($prefix . 'apt-add-repository ppa:nginx/mainline -y');
+            $this->cli->quietly($prefix . 'apt-get update');
+            $this->cli->quietly($prefix . 'apt install -y nginx');
         } else {
             warning("nginx already installed.");
+        }
+    }
+
+    /**
+     * Ensure nginx is installed
+     *
+     * @return void
+     */
+    public function ensureMysqlInstalled($container = '')
+    {
+        if (!$this->hasInstalledMysql($container)) {
+            info("Installing mariadb...");
+
+            $prefix = $this->containerExec($container);
+
+            $this->cli->quietly($prefix . 'apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8');
+            $this->cli->quietly($prefix . 'apt-add-repository "deb [arch=amd64,i386] http://nyc2.mirrors.digitalocean.com/mariadb/repo/10.3/ubuntu bionic main"');
+            $this->cli->quietly($prefix . 'apt-get update');
+            $this->cli->quietly($prefix . 'apt install -y mariadb-server mariadb-client');
+        } else {
+            warning("mariadb already installed.");
+        }
+    }
+
+    /**
+     * Ensure nginx is installed
+     *
+     * @return void
+     */
+    public function ensurePhpInstalled($container = '')
+    {
+        if (!$this->hasInstalledPhp($container)) {
+            info("Installing PHP...");
+
+            $prefix = $this->containerExec($container);
+
+            $this->cli->quietly($prefix . 'apt-add-repository ppa:ondrej/php -y');
+            $this->cli->quietly($prefix . 'apt-get update');
+            $this->cli->quietly($prefix . 'apt-get install -y php7.3-cli php7.3-common php7.3-curl php7.3-dev php7.3-fpm php7.3-gd php7.3-mbstring php7.3-mysql php7.3-opcache php7.3-xml php7.3-xmlrpc php7.3-zip');
+        } else {
+            warning("PHP already installed.");
         }
     }
 
@@ -93,7 +171,7 @@ class Apt
      *
      * @param
      */
-    function restartService($services)
+    public function restartService($services)
     {
         $services = is_array($services) ? $services : func_get_args();
 
@@ -112,7 +190,7 @@ class Apt
      *
      * @param
      */
-    function stopService($services)
+    public function stopService($services)
     {
         $services = is_array($services) ? $services : func_get_args();
 

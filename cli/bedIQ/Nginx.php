@@ -12,7 +12,7 @@ class Nginx
         $this->filesystem = new Filesystem();
     }
 
-    function tweakConfig()
+    public function tweakConfig()
     {
         $this->filesystem->copy(BEDIQ_STUBS . '/nginx/nginx.conf', '/etc/nginx/nginx.conf');
 
@@ -23,7 +23,7 @@ class Nginx
         $this->filesystem->copy(BEDIQ_STUBS . '/nginx/common/wordpress.conf', '/etc/nginx/common/wordpress.conf');
     }
 
-    function createSite($domain, $wp = false)
+    public function createSite($domain, $wp = false)
     {
         $domain   = strtolower($domain);
         $filename = $wp ? 'default' : $domain;
@@ -35,12 +35,12 @@ class Nginx
         $config = str_replace('{domain}', $domain, $config);
 
         $this->filesystem->put('/etc/nginx/sites-available/' . $filename, $config);
-        $this->filesystem->symlink('/etc/nginx/sites-available/' . $filename, '/etc/nginx/sites-enabled/' . $filename );
+        $this->filesystem->symlink('/etc/nginx/sites-available/' . $filename, '/etc/nginx/sites-enabled/' . $filename);
 
         $this->reloadNginx();
     }
 
-    function removeSite($domain, $wp = false)
+    public function removeSite($domain, $wp = false)
     {
         $domain   = strtolower($domain);
         $filename = $wp ? 'default' : $domain;
@@ -53,7 +53,7 @@ class Nginx
         $this->reloadNginx();
     }
 
-    function reloadNginx()
+    public function reloadNginx()
     {
         (new Apt())->restartService('nginx');
     }

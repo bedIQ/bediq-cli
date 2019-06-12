@@ -9,7 +9,8 @@ class Lxc
     private $files;
     private $cli;
 
-    function __construct(CommandLine $cli, Filesystem $files) {
+    public function __construct(CommandLine $cli, Filesystem $files)
+    {
         $this->cli   = $cli;
         $this->files = $files;
     }
@@ -19,7 +20,7 @@ class Lxc
      *
      * @return void
      */
-    function init()
+    public function init()
     {
         $seed = $this->files->get(BEDIQ_STUBS . '/lxd.yaml');
 
@@ -33,12 +34,12 @@ class Lxc
      *
      * @return boolean
      */
-    function containerExists($container)
+    public function containerExists($container)
     {
         return $this->cli->run("lxc list | grep {$container} | awk '{print \$2}'") != '';
     }
 
-    function hasBase()
+    public function hasBase()
     {
         return $this->containerExists('base');
     }
@@ -50,7 +51,7 @@ class Lxc
      *
      * @return boolean
      */
-    function isRunning($container)
+    public function isRunning($container)
     {
         return trim($this->cli->run("lxc list | grep {$container} | awk '{print \$4}'")) == 'RUNNING';
     }
@@ -62,7 +63,7 @@ class Lxc
      *
      * @return string|false
      */
-    function getIp($container)
+    public function getIp($container)
     {
         $ip = trim($this->cli->run("lxc list | grep {$container} | awk '{print \$6}'"));
 
@@ -80,7 +81,7 @@ class Lxc
      *
      * @return void
      */
-    function start($container)
+    public function start($container)
     {
         $this->cli->run("lxc start {$container}");
     }
@@ -92,7 +93,7 @@ class Lxc
      *
      * @return string
      */
-    function stop($container)
+    public function stop($container)
     {
         return $this->cli->run("lxc stop {$container}");
     }
@@ -104,7 +105,7 @@ class Lxc
      *
      * @return void
      */
-    function remove($container)
+    public function remove($container)
     {
         $this->stop($container);
         $this->cli->run("lxc delete {$container}");
@@ -119,11 +120,11 @@ class Lxc
      *
      * @return string The IP address
      */
-    function launch($container)
+    public function launch($container)
     {
         info("Creating container {$container}...");
 
-        $this->cli->run("lxc launch ubuntu:18.04 {$container}", function($code, $output) {
+        $this->cli->run("lxc launch ubuntu:18.04 {$container}", function ($code, $output) {
             output($output);
 
             throw new \Exception('Could not launch container');

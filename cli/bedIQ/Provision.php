@@ -9,7 +9,8 @@ class Provision
     private $files;
     private $cli;
 
-    function __construct(CommandLine $cli, Filesystem $files) {
+    public function __construct(CommandLine $cli, Filesystem $files)
+    {
         $this->files = $files;
         $this->cli   = $cli;
     }
@@ -20,14 +21,14 @@ class Provision
         $this->unattendedUpgrades();
     }
 
-    function createSitesDirectory()
+    public function createSitesDirectory()
     {
-        $this->files->ensureDirExists( self::sitePath(), user() );
+        $this->files->ensureDirExists(self::sitePath(), user());
     }
 
-    function writeBaseConfiguration()
+    public function writeBaseConfiguration()
     {
-        if ( ! $this->files->exists($this->path())) {
+        if (! $this->files->exists($this->path())) {
             $this->write([
                 'sites' => []
             ]);
@@ -41,7 +42,7 @@ class Provision
      * @param  array  $info
      * @return void
      */
-    function addSite($site, $info = [])
+    public function addSite($site, $info = [])
     {
         $this->write(tap($this->read(), function (&$config) use ($site, $info) {
             $config['sites'][$site] = $info;
@@ -54,10 +55,10 @@ class Provision
      * @param  string  $path
      * @return void
      */
-    function removeSite($site)
+    public function removeSite($site)
     {
         $this->write(tap($this->read(), function (&$config) use ($site) {
-            unset( $config['sites'][$site] );
+            unset($config['sites'][$site]);
         }));
     }
 
@@ -66,9 +67,9 @@ class Provision
      *
      * @return array
      */
-    function read()
+    public function read()
     {
-        return json_decode( $this->files->get( $this->path() ), true);
+        return json_decode($this->files->get($this->path()), true);
     }
 
     /**
@@ -78,11 +79,11 @@ class Provision
      * @param  mixed  $value
      * @return array
      */
-    function updateKey($key, $value)
+    public function updateKey($key, $value)
     {
         return tap($this->read(), function (&$config) use ($key, $value) {
             $config[$key] = $value;
-            $this->write( $config );
+            $this->write($config);
         });
     }
 
@@ -92,14 +93,15 @@ class Provision
      * @param  array  $config
      * @return void
      */
-    function write($config)
+    public function write($config)
     {
-        $this->files->putAsUser( $this->path(), json_encode(
-            $config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
-        ) . PHP_EOL );
+        $this->files->putAsUser($this->path(), json_encode(
+            $config,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
+        ) . PHP_EOL);
     }
 
-    function unattendedUpgrades()
+    public function unattendedUpgrades()
     {
         $this->files->copy(BEDIQ_STUBS . '/apt/50unattended-upgrades', '/etc/apt/apt.conf.d/50unattended-upgrades');
         $this->files->copy(BEDIQ_STUBS . '/apt/10periodic', '/etc/apt/apt.conf.d/10periodic');

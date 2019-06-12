@@ -52,10 +52,15 @@ $app->command('provision type', function($type) {
         return;
     }
 
+    $apt = new Apt();
+    $apt->ensurePhpInstalled();
+    $apt->ensureMysqlInstalled();
+    $apt->ensureNginxInstalled();
+
     // $provision->install();
-    $lxc = new Lxc($cli, $file);
-    $domain = 'hello-com';
-    var_dump( $lxc->launch($domain) );
+    // $lxc = new Lxc($cli, $file);
+    // $domain = 'hello-com';
+    // var_dump( $lxc->launch($domain) );
     // $lxc->remove($domain);
     // output($lxc->getIp($domain));
 
