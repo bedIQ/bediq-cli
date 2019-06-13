@@ -20,6 +20,7 @@ use Bediq\Cli\Nginx;
 use Bediq\Cli\Provision;
 use Bediq\Cli\Filesystem;
 use Bediq\Cli\Lxc;
+use Bediq\Cli\WP;
 
 use function Bediq\Cli\info;
 use function Bediq\Cli\error;
@@ -37,8 +38,13 @@ $app->command('test', function() {
     $file = new Filesystem();
     $cli  = new CommandLine();
     $apt  = new Apt($cli, $file);
+    $lxd  = new Lxc($cli, $file);
+    $wp  = new WP($cli, $file);
 
-    $apt->ensureWpInstalled('base');
+    $container = 'base';
+    $path      = '/var/www/html/';
+
+    $wp->download($container, $path);
 });
 
 $app->command('provision:vm', function(SymfonyStyle $io) {
@@ -133,6 +139,10 @@ $app->command('provision:container container', function($container, SymfonyStyle
     $apt->ensurePhpInstalled($container);
     $apt->ensureMysqlInstalled('root', $container);
     $apt->ensureWpInstalled($container);
+
+    // copy PHP optimized .ini settings
+    $lxd->pushFile($container, BEDIQ_STUBS . '/php/php.ini', '/etc/php/7.3/fpm/conf.d/30-bediq');
+    $lxd->restartService($container, 'php7.3-fpm');
 
 })->descriptions('Provision the LXD container');
 

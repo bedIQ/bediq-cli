@@ -70,15 +70,15 @@ class CommandLine
      * @param  callable $onError
      * @return string
      */
-    public function runCommand($command, callable $onError = null)
+    public function runCommand($command, callable $onError = null, string $cwd = null)
     {
         $onError = $onError ?: function () {
         };
 
         if (method_exists(Process::class, 'fromShellCommandline')) {
-            $process = Process::fromShellCommandline($command);
+            $process = Process::fromShellCommandline($command, $cwd);
         } else {
-            $process = new Process($command);
+            $process = new Process($command, $cwd);
         }
 
         $processOutput = '';

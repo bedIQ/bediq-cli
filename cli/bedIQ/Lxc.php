@@ -39,11 +39,6 @@ class Lxc
         return $this->cli->run("lxc list | grep {$container} | awk '{print \$2}'") != '';
     }
 
-    public function hasBase()
-    {
-        return $this->containerExists('base');
-    }
-
     /**
      * Check if a container is in running state
      *
@@ -158,5 +153,46 @@ class Lxc
         }
 
         return $ip;
+    }
+
+    /**
+     * Push a file from host to container
+     *
+     * @param  string $container
+     * @param  string $from
+     * @param  string $to
+     *
+     * @return string
+     */
+    public function pushFile($container, $from, $to)
+    {
+        return $this->cli->run("lxc file push {$from} {$container}/{$to}");
+    }
+
+    /**
+     * Pull a file from container to host
+     *
+     * @param  string $container
+     * @param  string $from
+     * @param  string $to
+     *
+     * @return string
+     */
+    public function pullFile($container, $from, $to)
+    {
+        return $this->cli->run("lxc file pull {$container}/{$from} {$to}");
+    }
+
+    /**
+     * Restart a given service
+     *
+     * @param  string $container
+     * @param  string $service
+     *
+     * @return string
+     */
+    public function restartService($container, $service)
+    {
+        return $this->exec($container, "service {$service} restart");
     }
 }

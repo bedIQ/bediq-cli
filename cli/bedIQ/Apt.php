@@ -194,7 +194,7 @@ class Apt
     }
 
     /**
-     * Restart the given Homebrew services.
+     * Restart the given services.
      *
      * @param
      */
