@@ -184,6 +184,19 @@ class Lxc
     }
 
     /**
+     * Delete a file from container to host
+     *
+     * @param  string $container
+     * @param  string $path
+     *
+     * @return string
+     */
+    public function deleteFile($container, $path)
+    {
+        return $this->cli->run("lxc file delete {$container}/{$path}");
+    }
+
+    /**
      * Restart a given service
      *
      * @param  string $container

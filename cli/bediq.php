@@ -39,12 +39,35 @@ $app->command('test', function() {
     $cli  = new CommandLine();
     $apt  = new Apt($cli, $file);
     $lxd  = new Lxc($cli, $file);
-    $wp  = new WP($cli, $file);
+    $wp   = new WP($cli, $file);
 
     $container = 'base';
     $path      = '/var/www/html/';
 
-    $wp->download($container, $path);
+    $config = [
+        'dbname' => 'bediq',
+        'dbuser' => 'root',
+        'dbpass' => 'root',
+        'id'     => 'the-site-id',
+        'key'    => 'do-key',
+        'secret' => 'do-secret',
+    ];
+
+    // site details
+    $url      = 'bediq-wp-base.com';
+    $title    = 'bedIQ Test Site';
+    $username = 'admin';
+    $pass     = 'admin';
+    $email    = 'tareq1988@gmail.com';
+
+    $plugins = ['weforms', 'advanced-custom-fields'];
+    $themes  = ['hestia'];
+    // $wp->download($container, $path);
+    // $wp->generateConfig($container, $config, $path);
+    // $wp->install($container, $path, $url, $title, $username, $pass, $email);
+    // $wp->installPlugins($container, $path, $plugins);
+    // $wp->installThemes($container, $path, $themes);
+    // $wp->backup($container, $path);
 });
 
 $app->command('provision:vm', function(SymfonyStyle $io) {
