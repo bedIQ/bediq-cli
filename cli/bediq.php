@@ -4,7 +4,7 @@
 /**
  * Load correct autoloader depending on install location.
  */
-if ( file_exists( __DIR__ . '/../vendor/autoload.php' ) ) {
+if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
     require __DIR__ . '/../vendor/autoload.php';
 } else {
     require __DIR__ . '/../../../autoload.php';
@@ -28,13 +28,13 @@ use function Bediq\Cli\output;
 use function Bediq\Cli\table;
 use function Bediq\Cli\warning;
 
-define( 'BEDIQ_STUBS', __DIR__ . '/stubs' );
+define('BEDIQ_STUBS', __DIR__ . '/stubs');
 
 $version = '1.0';
 
 $app = new Application('Ubuntu server management cli interface for bedIQ', $version);
 
-$app->command('test', function() {
+$app->command('test', function () {
     $file = new Filesystem();
     $cli  = new CommandLine();
     $apt  = new Apt($cli, $file);
@@ -56,7 +56,7 @@ $app->command('test', function() {
     echo $wp->generateConfig($container, $config, $path);
 });
 
-$app->command('provision:vm', function(SymfonyStyle $io) {
+$app->command('provision:vm', function (SymfonyStyle $io) {
 
     $cli       = new CommandLine();
     $file      = new Filesystem();
@@ -107,11 +107,10 @@ $app->command('provision:vm', function(SymfonyStyle $io) {
 
     // info('Base IP address: ' . $ip);
 
-    info( "bedIQ installed" );
-
+    info("bedIQ installed");
 })->descriptions('Provision the bediq VM');
 
-$app->command('container:create container', function($container) {
+$app->command('container:create container', function ($container) {
     $cli   = new CommandLine();
     $file  = new Filesystem();
     $lxd   = new Lxc($cli, $file);
@@ -121,7 +120,7 @@ $app->command('container:create container', function($container) {
     info("{$container} created.");
 });
 
-$app->command('provision:container container', function($container) {
+$app->command('provision:container container', function ($container) {
 
     $cli       = new CommandLine();
     $file      = new Filesystem();
@@ -137,7 +136,6 @@ $app->command('provision:container container', function($container) {
     output('Provisioning started...');
 
     if (!$lxd->isRunning($container)) {
-
         if ($verbose) {
             $io->writeln("{$container} is stopped. Starting...");
         }
@@ -164,7 +162,6 @@ $app->command('provision:container container', function($container) {
     output('Optimizing PHP...');
     $lxd->pushFile($container, BEDIQ_STUBS . '/php/php.ini', '/etc/php/7.3/fpm/conf.d/30-bediq');
     $lxd->restartService($container, 'php7.3-fpm');
-
 })->descriptions('Provision the LXD container');
 
 $app->command('site:create domain [--type=]', function ($domain, $type) {
@@ -205,13 +202,10 @@ $app->command('site:create domain [--type=]', function ($domain, $type) {
         // check if the container exists
         // if not, launch a new one
         if (!$lxd->exists($container)) {
-
             $ip = $lxd->launch($container);
 
             $this->runCommand("provision:container {$container}");
-
         } else {
-
             if (!$lxd->isRunning($container)) {
                 $lxd->start($container);
             }
@@ -261,8 +255,7 @@ $app->command('site:create domain [--type=]', function ($domain, $type) {
         $nginx->createDefaultWp($container);
     }
 
-    info( "Site '{$domain}' with '{$type}' created" );
-
+    info("Site '{$domain}' with '{$type}' created");
 })->descriptions('Create a new site', [
     'domain' => 'The url of the site without http(s)',
     '--type' => 'Type of the site. e.g. static, wp',
@@ -295,8 +288,7 @@ $app->command('site:delete domain [--type=]', function ($domain, $type) {
         $lxd->remove($container);
     }
 
-    info( "Site $domain deleted" );
-
+    info("Site $domain deleted");
 })->descriptions('Delete the site.');
 
 $app->command('update:domain domain [extra]', function ($domain, $extra) {

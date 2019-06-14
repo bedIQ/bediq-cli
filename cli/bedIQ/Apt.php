@@ -187,7 +187,6 @@ class Apt
 
             $val = '"\$@"';
             $this->cli->run($prefix . "sh -c 'cat >> ~/.bashrc << EOF" . PHP_EOL ."wp() {" . PHP_EOL ."  /usr/local/bin/wp {$val} --allow-root" . PHP_EOL ."}" . PHP_EOL ."EOF'");
-
         } else {
             warning("WP CLI already installed.");
         }

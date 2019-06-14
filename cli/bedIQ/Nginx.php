@@ -74,7 +74,7 @@ class Nginx
     public function updateStaticDomain($domain, $extraDomain)
     {
         $config = $this->files->get(BEDIQ_STUBS . '/nginx/site/static.conf');
-        $config = str_replace('server_name {domain}', 'server_bame ' . $domain . ' ' . $extraDomain, $config);
+        $config = str_replace('server_name {domain}', 'server_name ' . $domain . ' ' . $extraDomain, $config);
         $config = str_replace('{domain}', $domain, $config);
 
         $this->files->put('/etc/nginx/sites-available/' . $domain, $config);
