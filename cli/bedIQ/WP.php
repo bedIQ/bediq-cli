@@ -30,7 +30,7 @@ class WP extends Lxc
      */
     public function generateConfig($container, $config, $path)
     {
-        return $this->exec($container, "wp core config --dbname={$config['dbname']} --dbuser={$config['dbuser']} --dbpass={$config['dbpass']} --allow-root --path={$path} --extra-php <<PHP\n" . $this->extraPhp($config['id'], $config['key'], $config['secret']) . "\nPHP");
+        return $this->exec($container, "wp core config --dbname={$config['dbname']} --dbuser={$config['dbuser']} --dbpass={$config['dbpass']} --allow-root --path={$path} --extra-php <<'PHP'\n" . $this->extraPhp($config['id'], $config['key'], $config['secret']) . "\nPHP");
     }
 
     public function extraPhp($siteId, $key, $secret)
@@ -73,12 +73,14 @@ EOF;
      * @param  string $pass
      * @param  string $email
      *
-     * @return string
+     * @return void
      */
     public function install($container, $path, $url, $title, $username, $pass, $email)
     {
         $this->exec($container, 'wp db create --allow-root --path=' . $path);
-        return $this->exec($container, 'wp core install --url="http://' . $url .'" --title="' . $title .'" --admin_user="' . $username .'" --admin_password="' . $pass .'" --admin_email="' . $email .'" --allow-root --path=' . $path);
+        $this->exec($container, 'wp core install --url="http://' . $url .'" --title="' . $title .'" --admin_user="' . $username .'" --admin_password="' . $pass .'" --admin_email="' . $email .'" --allow-root --path=' . $path);
+        $this->exec($container, 'wp rewrite structure "/%postname%/" --hard --allow-root --path=' . $path);
+        $this->exec($container, 'wp plugin delete akismet hello --allow-root --path=' . $path);
     }
 
     /**
