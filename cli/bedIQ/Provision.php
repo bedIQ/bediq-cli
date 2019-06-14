@@ -9,23 +9,57 @@ class Provision
     private $files;
     private $cli;
 
+    /**
+     * [__construct description]
+     *
+     * @param CommandLine $cli
+     * @param Filesystem  $files
+     */
     public function __construct(CommandLine $cli, Filesystem $files)
     {
         $this->files = $files;
         $this->cli   = $cli;
     }
 
+    /**
+     * Install the initial configs
+     *
+     * @return void
+     */
     public function install()
     {
         $this->writeBaseConfiguration();
         $this->unattendedUpgrades();
+
+        $this->createBackupsDirectory();
+        $this->createSitesDirectory();
     }
 
+    /**
+     * Create sites directory
+     *
+     * @return void
+     */
     public function createSitesDirectory()
     {
         $this->files->ensureDirExists(self::sitePath(), user());
     }
 
+    /**
+     * Create backups directory
+     *
+     * @return void
+     */
+    public function createBackupsDirectory()
+    {
+        $this->files->ensureDirExists('~/backups');
+    }
+
+    /**
+     * Create a swap file if not exists
+     *
+     * @return void
+     */
     public function createSwapFile()
     {
         if (!$this->files->exists('/swapfile')) {
@@ -39,6 +73,11 @@ class Provision
         }
     }
 
+    /**
+     * Enable firewall
+     *
+     * @return void
+     */
     public function enableFirewall()
     {
         $this->cli->quietly('ufw allow 22');
@@ -47,6 +86,11 @@ class Provision
         $this->cli->quietly('ufw --force enable');
     }
 
+    /**
+     * Write basic confi on sites.json
+     *
+     * @return void
+     */
     public function writeBaseConfiguration()
     {
         if (! $this->files->exists($this->path())) {
@@ -122,19 +166,34 @@ class Provision
         ) . PHP_EOL);
     }
 
+    /**
+     * Configure unattended upgrades
+     *
+     * @return void
+     */
     public function unattendedUpgrades()
     {
         $this->files->copy(BEDIQ_STUBS . '/apt/50unattended-upgrades', '/etc/apt/apt.conf.d/50unattended-upgrades');
         $this->files->copy(BEDIQ_STUBS . '/apt/10periodic', '/etc/apt/apt.conf.d/10periodic');
     }
 
+    /**
+     * Config file path
+     *
+     * @return string
+     */
     private function path()
     {
-        return '/root/bediq.json';
+        return '/root/sites.json';
     }
 
-    public static function sitePath()
+    /**
+     * The static site path
+     *
+     * @return string
+     */
+    public static function sitePath($domain)
     {
-        return $_SERVER['HOME'] . '/sites';
+        return '/var/www/' . $domain;
     }
 }

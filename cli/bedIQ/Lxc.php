@@ -34,7 +34,7 @@ class Lxc
      *
      * @return boolean
      */
-    public function containerExists($container)
+    public function exists($container)
     {
         return $this->cli->run("lxc list | grep {$container} | awk '{print \$2}'") != '';
     }
@@ -118,7 +118,7 @@ class Lxc
         $this->stop($container);
         $this->cli->run("lxc delete {$container}");
 
-        info("Removed container {$container}");
+        output("Removed container {$container}");
     }
 
     /**
@@ -130,7 +130,7 @@ class Lxc
      */
     public function launch($container)
     {
-        if ($this->containerExists($container)) {
+        if ($this->exists($container)) {
             throw new \Exception("Container {$container} exists");
         }
 
@@ -207,5 +207,17 @@ class Lxc
     public function restartService($container, $service)
     {
         return $this->exec($container, "service {$service} restart");
+    }
+
+    /**
+     * Get a valid container name from a domain
+     *
+     * @param  string $domain
+     *
+     * @return string
+     */
+    public function nameByDomain($domain)
+    {
+        return str_replace(['.', '_'], '-', $domain);
     }
 }

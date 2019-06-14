@@ -66,7 +66,7 @@ class Apt
      */
     public function installOrFail($package, $options = [], $taps = [])
     {
-        info("Installing {$package}...");
+        output("Installing {$package}...");
 
         $this->cli->runAsUser(trim('sudo apt-get install -y '.$package.' '.implode(' ', $options)), function ($exitCode, $errorOutput) use ($package) {
             output($errorOutput);
@@ -113,7 +113,7 @@ class Apt
     public function ensureNginxInstalled($container = '')
     {
         if (!$this->hasInstalledNginx($container)) {
-            info("Installing nginx...");
+            output("Installing nginx...");
 
             $prefix = $this->containerExec($container);
 
@@ -133,7 +133,7 @@ class Apt
     public function ensureMysqlInstalled($password, $container = '')
     {
         if (!$this->hasInstalledMysql($container)) {
-            info("Installing mariadb...");
+            output("Installing mariadb...");
 
             $prefix = $this->containerExec($container);
 
@@ -157,7 +157,7 @@ class Apt
     public function ensurePhpInstalled($container = '')
     {
         if (!$this->hasInstalledPhp($container)) {
-            info("Installing PHP...");
+            output("Installing PHP...");
 
             $prefix = $this->containerExec($container);
 
@@ -177,7 +177,7 @@ class Apt
     public function ensureWpInstalled($container = '')
     {
         if (!$this->installed('wp', $container)) {
-            info("Installing WP CLI...");
+            output("Installing WP CLI...");
 
             $prefix = $this->containerExec($container);
 
@@ -204,7 +204,7 @@ class Apt
 
         foreach ($services as $service) {
             if ($this->installed($service)) {
-                info("Restarting {$service}...");
+                output("Restarting {$service}...");
                 $this->cli->runCommand('service ' . $service . ' restart');
             } else {
                 warning("Service {$service} not installed");
@@ -223,7 +223,7 @@ class Apt
 
         foreach ($services as $service) {
             if ($this->installed($service)) {
-                info("Stopping {$service}...");
+                output("Stopping {$service}...");
 
                 $this->cli->quietly('services ' . $service . ' stop');
             }

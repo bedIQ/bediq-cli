@@ -74,7 +74,7 @@ $app->command('provision:vm', function(SymfonyStyle $io) {
 
     $cli       = new CommandLine();
     $file      = new Filesystem();
-    $nginx     = new Nginx($file);
+    $nginx     = new Nginx($cli, $file);
     $provision = new Provision($cli, $file);
     $apt       = new Apt($cli, $file);
     $lxd       = new Lxc($cli, $file);
@@ -125,20 +125,20 @@ $app->command('provision:vm', function(SymfonyStyle $io) {
 
 })->descriptions('Provision the bediq VM');
 
-$app->command('provision:container container', function($container, SymfonyStyle $io) {
+$app->command('provision:container container', function($container) {
 
     $cli       = new CommandLine();
     $file      = new Filesystem();
-    $nginx     = new Nginx($file);
+    $nginx     = new Nginx($cli, $file);
     $provision = new Provision($cli, $file);
     $apt       = new Apt($cli, $file);
     $lxd       = new Lxc($cli, $file);
 
-    if (!$lxd->containerExists($container)) {
+    if (!$lxd->exists($container)) {
         throw new \Exception("Container {$container} doesn't exist");
     }
 
-    $verbose = $io->isVerbose();
+    output('Provisioning started...');
 
     if (!$lxd->isRunning($container)) {
 
@@ -149,13 +149,11 @@ $app->command('provision:container container', function($container, SymfonyStyle
         $lxd->start($container);
     }
 
-    if ($verbose) {
-        $io->writeln("Running update...");
-    }
-
+    output('Running update...');
     $lxd->exec($container, 'apt-get update');
     // $lxd->exec($container, 'apt-get upgrade -y');
 
+    output('Installing software-properties-common...');
     $cli->quietly('apt-get install -y software-properties-common');
 
     $apt->ensureNginxInstalled($container);
@@ -163,33 +161,148 @@ $app->command('provision:container container', function($container, SymfonyStyle
     $apt->ensureMysqlInstalled('root', $container);
     $apt->ensureWpInstalled($container);
 
+    output('Configuring nginx...');
+    $nginx->tweakConfig($container);
+
     // copy PHP optimized .ini settings
+    output('Optimizing PHP...');
     $lxd->pushFile($container, BEDIQ_STUBS . '/php/php.ini', '/etc/php/7.3/fpm/conf.d/30-bediq');
     $lxd->restartService($container, 'php7.3-fpm');
 
 })->descriptions('Provision the LXD container');
 
-$app->command('create site [--type=] [--php=] [--root=]', function ($site, $type, $php, $root) {
+$app->command('site:create domain [--type=]', function ($domain, $type) {
 
-    $sites = new Site( $site );
-    $sites->create( $type, $php, $root );
+    $allowedTypes = ['static', 'wp'];
 
-    info( "Site $site created" );
+    if (!in_array($type, $allowedTypes)) {
+        throw new Exception('Invalid supported site type');
+    }
+
+    $cli   = new CommandLine();
+    $file  = new Filesystem();
+    $nginx = new Nginx($cli, $file);
+    $lxd   = new Lxc($cli, $file);
+
+    if ($type == 'static') {
+        $sitePath = Provision::sitePath($domain);
+
+        if ($file->exists($sitePath)) {
+            throw new Exception('Site already exists');
+        }
+
+        $file->mkdir($sitePath);
+
+        // put a default HTML file
+        $html = $file->get(BEDIQ_STUBS . '/site-index.html');
+        $html = str_replace('{domain}', $domain, $html);
+        $file->put($sitePath . '/index.html', $html);
+
+        $nginx->createSite($domain);
+    } else {
+        if ($nginx->siteExists($domain)) {
+            throw new Exception('Site already exists');
+        }
+
+        $container = $lxd->nameByDomain($domain);
+
+        // check if the container exists
+        // if not, launch a new one
+        if (!$lxd->exists($container)) {
+
+            $ip = $lxd->launch($container);
+
+            $this->runCommand("provision:container {$container}");
+
+        } else {
+
+            if (!$lxd->isRunning($container)) {
+                $lxd->start($container);
+            }
+
+            $ip = $lxd->getIp($container);
+        }
+
+        output("Container '{$container}' has IP: {$ip}");
+
+        $wp   = new WP($cli, $file);
+        $path = '/var/www/html/';
+
+        $config = [
+            'dbname' => 'bediq',
+            'dbuser' => 'root',
+            'dbpass' => 'root',
+            'id'     => 'the-site-id',
+            'key'    => 'do-key',
+            'secret' => 'do-secret',
+        ];
+
+        // site details
+        $title    = 'bedIQ Test Site';
+        $username = 'admin';
+        $pass     = 'admin';
+        $email    = 'tareq1988@gmail.com';
+
+        $plugins = ['weforms', 'advanced-custom-fields'];
+        $themes  = ['hestia'];
+
+        output('Downloading WordPress...');
+        $wp->download($container, $path);
+        $wp->generateConfig($container, $config, $path);
+
+        output('Installing WordPress...');
+        $wp->install($container, $path, $domain, $title, $username, $pass, $email);
+
+        output('Installing plugins...');
+        $wp->installPlugins($container, $path, $plugins);
+
+        output('Installing themes...');
+        $wp->installThemes($container, $path, $themes);
+
+        output('Create nginx proxy on VM...');
+        $nginx->createWpProxy($domain, $ip);
+
+        $nginx->createDefaultWp($container);
+    }
+
+    // $sites = new Site( $site );
+    // $sites->create( $type, $php, $root );
+
+    info( "Site '{$domain}' with '{$type}' created" );
 
 })->descriptions('Create a new site', [
-    'site'   => 'The url of the site',
-    '--type' => 'Type of the site.',
+    'domain' => 'The url of the site without http(s)',
+    '--type' => 'Type of the site. e.g. static, wp',
 ])
 ->defaults([
-    'type' => 'php', // wp, bedrock, laravl, static
+    'type' => 'wp', // wp, static
 ]);
 
-$app->command('delete name', function ($name) {
+$app->command('site:delete domain [--type=]', function ($domain, $type) {
 
-    $site = new Site( $name );
-    $site->delete();
+    $file  = new Filesystem();
+    $cli   = new CommandLine();
+    $nginx = new Nginx($cli, $file);
 
-    info( "Site $name deleted" );
+    if ($type == 'static') {
+        $sitePath = Provision::sitePath($domain);
+
+        if ($file->exists($sitePath)) {
+            $cli->run('rm -rf ' . $sitePath);
+        }
+
+        $nginx->removeSite($domain);
+    } else {
+        $nginx->removeSite($domain);
+
+        $lxd = new Lxc($cli, $file);
+        $container = $lxd->nameByDomain($domain);
+
+        $lxd->stop($container);
+        $lxd->remove($container);
+    }
+
+    info( "Site $domain deleted" );
 
 })->descriptions('Delete the site.');
 
