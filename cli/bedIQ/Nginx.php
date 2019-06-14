@@ -64,6 +64,24 @@ class Nginx
     }
 
     /**
+     * Update domain on a static site
+     *
+     * @param  string $domain
+     * @param  string $extraDomain
+     *
+     * @return void
+     */
+    public function updateStaticDomain($domain, $extraDomain)
+    {
+        $config = $this->files->get(BEDIQ_STUBS . '/nginx/site/static.conf');
+        $config = str_replace('server_name {domain}', 'server_bame ' . $domain . ' ' . $extraDomain, $config);
+        $config = str_replace('{domain}', $domain, $config);
+
+        $this->files->put('/etc/nginx/sites-available/' . $domain, $config);
+        $this->reloadNginx();
+    }
+
+    /**
      * Create a WP proxy site in the main VM
      *
      * @param  string $domain

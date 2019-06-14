@@ -41,8 +41,7 @@ $app->command('test', function() {
     $lxd  = new Lxc($cli, $file);
     $wp   = new WP($cli, $file);
 
-    $container = 'base';
-    $path      = '/var/www/html/';
+    $path = '/var/www/html/';
 
     $config = [
         'dbname' => 'bediq',
@@ -52,22 +51,9 @@ $app->command('test', function() {
         'key'    => 'do-key',
         'secret' => 'do-secret',
     ];
+    $container = 'wp-bdq';
 
-    // site details
-    $url      = 'bediq-wp-base.com';
-    $title    = 'bedIQ Test Site';
-    $username = 'admin';
-    $pass     = 'admin';
-    $email    = 'tareq1988@gmail.com';
-
-    $plugins = ['weforms', 'advanced-custom-fields'];
-    $themes  = ['hestia'];
-    // $wp->download($container, $path);
-    // $wp->generateConfig($container, $config, $path);
-    // $wp->install($container, $path, $url, $title, $username, $pass, $email);
-    // $wp->installPlugins($container, $path, $plugins);
-    // $wp->installThemes($container, $path, $themes);
-    // $wp->backup($container, $path);
+    echo $wp->generateConfig($container, $config, $path);
 });
 
 $app->command('provision:vm', function(SymfonyStyle $io) {
@@ -103,7 +89,7 @@ $app->command('provision:vm', function(SymfonyStyle $io) {
     $provision->createSwapFile();
 
     // Setup Unattended Security Upgrades
-    $provision->unattendedUpgrades();
+    $provision->install();
 
     // Disable The Default Nginx Site
     $nginx->tweakConfig();
@@ -124,6 +110,16 @@ $app->command('provision:vm', function(SymfonyStyle $io) {
     info( "bedIQ installed" );
 
 })->descriptions('Provision the bediq VM');
+
+$app->command('container:create container', function($container) {
+    $cli   = new CommandLine();
+    $file  = new Filesystem();
+    $lxd   = new Lxc($cli, $file);
+
+    $lxd->launch($container);
+
+    info("{$container} created.");
+});
 
 $app->command('provision:container container', function($container) {
 
@@ -198,7 +194,7 @@ $app->command('site:create domain [--type=]', function ($domain, $type) {
         $html = str_replace('{domain}', $domain, $html);
         $file->put($sitePath . '/index.html', $html);
 
-        $nginx->createSite($domain);
+        $nginx->createStaticSite($domain);
     } else {
         if ($nginx->siteExists($domain)) {
             throw new Exception('Site already exists');
@@ -265,9 +261,6 @@ $app->command('site:create domain [--type=]', function ($domain, $type) {
         $nginx->createDefaultWp($container);
     }
 
-    // $sites = new Site( $site );
-    // $sites->create( $type, $php, $root );
-
     info( "Site '{$domain}' with '{$type}' created" );
 
 })->descriptions('Create a new site', [
@@ -305,5 +298,16 @@ $app->command('site:delete domain [--type=]', function ($domain, $type) {
     info( "Site $domain deleted" );
 
 })->descriptions('Delete the site.');
+
+$app->command('update:domain domain [extra]', function ($domain, $extra) {
+
+    $file  = new Filesystem();
+    $cli   = new CommandLine();
+    $nginx = new Nginx($cli, $file);
+
+    $nginx->updateStaticDomain($domain, $extra);
+
+    info('Domain updated');
+});
 
 $app->run();
