@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+DEBIAN_FRONTEND=noninteractive
 
 function update_apt() {
     apt-get update && apt-get upgrade -y
