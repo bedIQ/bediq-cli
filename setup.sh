@@ -2,7 +2,7 @@
 DEBIAN_FRONTEND=noninteractive
 
 function update_apt() {
-    apt-get update && apt-get upgrade -y
+    apt-get update
 }
 
 function setup_prerequisite() {
