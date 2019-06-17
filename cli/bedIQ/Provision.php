@@ -32,17 +32,6 @@ class Provision
         $this->unattendedUpgrades();
 
         $this->createBackupsDirectory();
-        $this->createSitesDirectory();
-    }
-
-    /**
-     * Create sites directory
-     *
-     * @return void
-     */
-    public function createSitesDirectory()
-    {
-        $this->files->ensureDirExists(self::sitePath(), user());
     }
 
     /**
