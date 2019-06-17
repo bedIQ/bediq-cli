@@ -3,16 +3,18 @@ DEBIAN_FRONTEND=noninteractive
 
 function update_apt() {
     apt-get update
+    apt autoremove -y
 }
 
 function setup_prerequisite() {
     # Adding software-properties-common for add-apt-repository.
-    apt-get install -y software-properties-common
+    apt install -y software-properties-common
     # Adding git for cloning our repo
     apt install -y git
 
     # Set timezone
-    timedatectl set-timezone UTC
+    ln -fs /usr/share/zoneinfo/UTC /etc/localtime
+    dpkg-reconfigure -f noninteractive tzdata
 
     # restart cron service
     service cron restart
