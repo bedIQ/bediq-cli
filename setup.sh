@@ -30,9 +30,8 @@ function setup_composer() {
 }
 
 function setup_php() {
-    echo "Installing PHP"
     if ! command -v php >/dev/null 2>&1; then
-        echo "Installing PHP cli"
+        echo "Installing PHP CLI"
         # Adding ondrej/php repository for installing php, this works for all ubuntu flavours.
         add-apt-repository -y ppa:ondrej/php
         apt-get update
@@ -41,7 +40,7 @@ function setup_php() {
     fi
 }
 
-function download_and_install_bediq() {
+function install_bediq_cli() {
     echo "Downloading bedIQ CLI"
     git clone https://github.com/bedIQ/bediq-cli.git /opt/bediq-cli
     ln -s /opt/bediq-cli/bediq /usr/local/bin/bediq
@@ -49,8 +48,13 @@ function download_and_install_bediq() {
     composer install --no-interaction --prefer-dist --optimize-autoloader
 }
 
+function provision_vm() {
+    bediq provision:vm
+}
+
 update_apt
 setup_prerequisite
 setup_php
 setup_composer
-download_and_install_bediq
+install_bediq_cli
+provision_vm
