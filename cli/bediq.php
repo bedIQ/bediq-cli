@@ -65,11 +65,6 @@ $app->command('provision:vm', function (SymfonyStyle $io) {
     $apt       = new Apt($cli, $file);
     $lxd       = new Lxc($cli, $file);
 
-    $cli->run('apt-get update && apt-get upgrade -y');
-
-    // install software-properties-common
-    $cli->quietly('apt-get install -y software-properties-common');
-
     // install vim
     $apt->ensureInstalled('vim');
 
