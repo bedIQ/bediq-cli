@@ -36,7 +36,9 @@ class Lxc
      */
     public function exists($container)
     {
-        return $this->cli->run("lxc list | grep {$container} | awk '{print \$2}'") != '';
+        $output = $this->cli->run("lxc list | grep {$container} | awk '{print \$2}'");
+        echo "Exists check for {$container} output: " . $output . PHP_EOL;
+        return $output != '';
     }
 
     /**
