@@ -97,7 +97,11 @@ $app->command('provision:vm', function (SymfonyStyle $io) {
     }
 
     # launch LXD container
+    output('Initializing LXD...');
     $lxd->init();
+
+    output('Sleep 3 seconds...');
+    sleep(3);
     $ip = $lxd->launch('base');
 
     // info('Base IP address: ' . $ip);
