@@ -12,6 +12,8 @@ function setup_prerequisite() {
     # Adding git for cloning our repo
     apt install -y git
 
+    apt install -y zip unzip
+
     # Set timezone
     ln -fs /usr/share/zoneinfo/UTC /etc/localtime
     dpkg-reconfigure -f noninteractive tzdata
