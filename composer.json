@@ -13,7 +13,7 @@
             "cli/includes/helpers.php"
         ],
         "psr-4": {
-            "Bediq\\Cli\\": "cli/Bediq/"
+            "Bediq\\Cli\\": "cli/bedIQ/"
         }
     },
     "require": {
