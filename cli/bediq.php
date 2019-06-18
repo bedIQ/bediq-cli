@@ -66,7 +66,7 @@ $app->command('provision:vm', function (SymfonyStyle $io) {
     $lxd       = new Lxc($cli, $file);
 
     // install vim
-    $apt->ensureInstalled('vim');
+    // $apt->ensureInstalled('vim');
 
     // install nginx
     $apt->ensureNginxInstalled();
