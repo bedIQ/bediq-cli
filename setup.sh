@@ -10,7 +10,11 @@ function update_apt() {
 function setup_prerequisite() {
     echo "Installing pre-requisites..."
     # Adding software-properties-common for add-apt-repository.
-    apt-get install -y software-properties-common git zip unzip
+    apt-get install -y software-properties-common
+
+    apt-get install -y git
+
+    apt-get isntall -y zip unzip
 
     # Set timezone
     ln -fs /usr/share/zoneinfo/UTC /etc/localtime
