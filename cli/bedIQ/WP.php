@@ -30,10 +30,10 @@ class WP extends Lxc
      */
     public function generateConfig($container, $config, $path)
     {
-        return $this->exec($container, "wp core config --dbname={$config['dbname']} --dbuser={$config['dbuser']} --dbpass={$config['dbpass']} --allow-root --path={$path} --extra-php <<'PHP'\n" . $this->extraPhp($config['id'], $config['key'], $config['secret']) . "\nPHP");
+        return $this->exec($container, "wp core config --dbname={$config['dbname']} --dbuser={$config['dbuser']} --dbpass={$config['dbpass']} --allow-root --path={$path} --extra-php <<'PHP'\n" . $this->extraPhp($config['key']) . "\nPHP");
     }
 
-    public function extraPhp($siteId, $key, $secret)
+    public function extraPhp($siteId)
     {
         $var = <<<EOF
 define( 'WP_DEBUG', true );
@@ -44,10 +44,10 @@ define( 'DISALLOW_FILE_EDIT', true );
 define( 'BEDIQ_DEV_MODE', false );
 define( 'BEDIQ_SITE_ID', '$siteId' );
 define( 'AS3CF_SETTINGS', serialize( array(
-    'provider'          => 'do',
-    'access-key-id'     => '$key',
-    'secret-access-key' => '$secret',
+    'provider' => 'gcp'
 ) ) );
+
+define( 'AS3CF_GCP_USE_GCE_IAM_ROLE', true );
 
 /**
  * Allow WordPress to detect HTTPS when used behind a reverse proxy or a load balancer
