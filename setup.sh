@@ -4,17 +4,17 @@ export DEBIAN_FRONTEND=noninteractive
 function update_apt() {
     echo "Updating apt..."
     apt-get update
-    apt autoremove -y
+    apt-get autoremove -y
 }
 
 function setup_prerequisite() {
     echo "Installing pre-requisites..."
     # Adding software-properties-common for add-apt-repository.
-    apt install -y software-properties-common
+    apt-get install -y software-properties-common
 
-    apt install -y git
+    apt-get install -y git
 
-    apt isntall -y zip unzip
+    apt-get install -y zip unzip tzdata
 
     # Set timezone
     ln -fs /usr/share/zoneinfo/UTC /etc/localtime
