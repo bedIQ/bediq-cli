@@ -3,8 +3,8 @@ export DEBIAN_FRONTEND=noninteractive
 
 function update_apt() {
     echo "Updating apt..."
-    apt-get update
-    apt-get autoremove -y
+    apt-get update > /dev/null 2>&1
+    apt-get autoremove -y > /dev/null 2>&1
 }
 
 function setup_prerequisite() {
@@ -39,7 +39,7 @@ function setup_php() {
         echo "Installing PHP CLI..."
         # Adding ondrej/php repository for installing php, this works for all ubuntu flavours.
         add-apt-repository -y ppa:ondrej/php
-        apt-get update
+        apt-get update > /dev/null 2>&1
         # Installing php-cli, which is the minimum requirement to run EasyEngine
         apt-get -y install php7.3-cli php7.3-curl php7.3-zip
     fi
@@ -51,7 +51,7 @@ function install_bediq_cli() {
         git clone https://github.com/bedIQ/bediq-cli.git /opt/bediq-cli
         ln -s /opt/bediq-cli/bediq /usr/local/bin/bediq
         cd /opt/bediq-cli
-        composer install --no-interaction --prefer-dist --optimize-autoloader
+        composer install --no-interaction --prefer-dist --optimize-autoloader > /dev/null 2>&1
         echo "bedIQ CLI installed"
     fi
 }
