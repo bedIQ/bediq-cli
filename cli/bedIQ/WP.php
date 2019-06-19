@@ -30,7 +30,7 @@ class WP extends Lxc
      */
     public function generateConfig($container, $config, $path)
     {
-        return $this->exec($container, "wp core config --dbname={$config['dbname']} --dbuser={$config['dbuser']} --dbpass={$config['dbpass']} --allow-root --path={$path} --extra-php <<'PHP'\n" . $this->extraPhp($config['key']) . "\nPHP");
+        return $this->exec($container, "wp core config --dbname={$config['dbname']} --dbuser={$config['dbuser']} --dbpass={$config['dbpass']} --allow-root --path={$path} --extra-php <<'PHP'\n" . $this->extraPhp($config['siteid']) . "\nPHP");
     }
 
     public function extraPhp($siteId)

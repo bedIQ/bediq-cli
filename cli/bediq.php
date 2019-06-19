@@ -42,18 +42,23 @@ $app->command('test', function () {
     $wp   = new WP($cli, $file);
 
     $path = '/var/www/html/';
+    $container = 'example-com';
 
-    $config = [
-        'dbname' => 'bediq',
-        'dbuser' => 'root',
-        'dbpass' => 'root',
-        'id'     => 'the-site-id',
-        'key'    => 'do-key',
-        'secret' => 'do-secret',
-    ];
-    $container = 'wp-bdq';
+    // output('Downloading WordPress...');
+    // $wp->download($container, $path);
+    // echo $wp->generateConfig($container, $config, $path);
 
-    echo $wp->generateConfig($container, $config, $path);
+    // $mysqlPass = bin2hex(random_bytes(12));
+    // $apt->ensureMysqlInstalled($mysqlPass, $container);
+    // echo $lxd->exec($container, 'sh -c "grep \'password=\' ~/.my.cnf | awk -F= \'{ print $NF }\'"');
+    // $pass = $lxd->exec($container, 'sh -c "grep \'password=\' ~/.my.cnf"');
+    // $pass = explode('=', $pass);
+    // print_r( $pass[1] );
+    // $pass = bin2hex(random_bytes(12));
+    // echo $lxd->exec($container, 'sh -c "echo \'[client]\' >> hello.txt"');
+    // echo $lxd->exec($container, 'sh -c "echo \'user=root\' >> hello.txt"');
+    // echo $lxd->exec($container, 'sh -c "echo \'password=' . $pass . '\' >> hello.txt"');
+    // echo $wp->generateConfig($container, $config, $path);
 });
 
 $app->command('provision:vm', function (SymfonyStyle $io) {
@@ -144,12 +149,14 @@ $app->command('provision:container container', function ($container) {
     $lxd->exec($container, 'apt-get update');
     // $lxd->exec($container, 'apt-get upgrade -y');
 
+    $mysqlPass = bin2hex(random_bytes(12));
+
     output('Installing software-properties-common...');
     $cli->quietly('apt-get install -y software-properties-common');
 
     $apt->ensureNginxInstalled($container);
     $apt->ensurePhpInstalled($container);
-    $apt->ensureMysqlInstalled('root', $container);
+    $apt->ensureMysqlInstalled($mysqlPass, $container);
     $apt->ensureWpInstalled($container);
 
     output('Configuring nginx...');
@@ -161,7 +168,7 @@ $app->command('provision:container container', function ($container) {
     $lxd->restartService($container, 'php7.3-fpm');
 })->descriptions('Provision the LXD container');
 
-$app->command('site:create domain [--type=]', function ($domain, $type) {
+$app->command('site:create domain [--type=] [--title=] [--email=] [--username=] [--password=] [--site-key=]', function ($domain, $type, $title, $email, $username, $password, $siteKey) {
 
     $allowedTypes = ['static', 'wp'];
 
@@ -194,6 +201,14 @@ $app->command('site:create domain [--type=]', function ($domain, $type) {
             throw new Exception('Site already exists');
         }
 
+        $required = ['email', 'username', 'password', 'siteKey'];
+
+        foreach ( $required as $reqField ) {
+            if (empty($$reqField)) {
+                throw new Exception('Missing field: ' . $reqField);
+            }
+        }
+
         $container = $lxd->nameByDomain($domain);
 
         // check if the container exists
@@ -215,20 +230,15 @@ $app->command('site:create domain [--type=]', function ($domain, $type) {
         $wp   = new WP($cli, $file);
         $path = '/var/www/html/';
 
+        $pass = $lxd->exec($container, 'sh -c "grep \'password=\' ~/.my.cnf"');
+        $pass = explode('=', $pass);
+
         $config = [
             'dbname' => 'bediq',
             'dbuser' => 'root',
-            'dbpass' => 'root',
-            'id'     => 'the-site-id',
-            'key'    => 'do-key',
-            'secret' => 'do-secret',
+            'dbpass' => trim($pass[1]),
+            'siteid' => $siteKey,
         ];
-
-        // site details
-        $title    = 'bedIQ Test Site';
-        $username = 'admin';
-        $pass     = 'admin';
-        $email    = 'tareq1988@gmail.com';
 
         $plugins = ['weforms', 'advanced-custom-fields'];
         $themes  = ['hestia'];
@@ -238,7 +248,7 @@ $app->command('site:create domain [--type=]', function ($domain, $type) {
         $wp->generateConfig($container, $config, $path);
 
         output('Installing WordPress...');
-        $wp->install($container, $path, $domain, $title, $username, $pass, $email);
+        $wp->install($container, $path, $domain, $title, $username, $password, $email);
 
         output('Installing plugins...');
         $wp->installPlugins($container, $path, $plugins);
@@ -254,11 +264,16 @@ $app->command('site:create domain [--type=]', function ($domain, $type) {
 
     info("Site '{$domain}' with '{$type}' created");
 })->descriptions('Create a new site', [
-    'domain' => 'The url of the site without http(s)',
-    '--type' => 'Type of the site. e.g. static, wp',
+    'domain'     => 'The url of the site without http(s)',
+    '--type'     => 'Type of the site. e.g. static, wp',
+    '--title'    => 'The site title',
+    '--username' => 'The admin account username',
+    '--password' => 'The admin account password',
+    '--email'    => 'The admin email address',
 ])
 ->defaults([
-    'type' => 'wp', // wp, static
+    'type' => 'wp', // wp, static,
+    'title' => 'Just another bedIQ site'
 ]);
 
 $app->command('site:delete domain [--type=]', function ($domain, $type) {

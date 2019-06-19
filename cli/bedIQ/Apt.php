@@ -141,9 +141,15 @@ class Apt
             $this->cli->quietly($prefix . 'apt-add-repository "deb [arch=amd64,i386] http://nyc2.mirrors.digitalocean.com/mariadb/repo/10.3/ubuntu bionic main"');
             $this->cli->quietly($prefix . 'apt-get update');
 
+            // set debconf so mysql doesn't prompt for password
             $this->cli->quietly($prefix . "sh -c 'echo \"mariadb-server-10.3 mysql-server/root_password password {$password}\" | debconf-set-selections'");
             $this->cli->quietly($prefix . "sh -c 'echo \"mariadb-server-10.3 mysql-server/root_password_again password {$password}\" | debconf-set-selections'");
             $this->cli->runCommand($prefix . 'apt install -yq mariadb-server mariadb-client > /dev/null 2>&1');
+
+            // save username/pass in mysql config file
+            $this->cli->runCommand($prefix . 'sh -c "echo \'[client]\' >> ~/.my.cnf"');
+            $this->cli->runCommand($prefix . 'sh -c "echo \'user=root\' >> ~/.my.cnf"');
+            $this->cli->runCommand($prefix . 'sh -c "echo \'password=' . $password . '\' >> ~/.my.cnf"');
         } else {
             warning("mariadb already installed.");
         }
