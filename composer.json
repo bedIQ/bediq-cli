@@ -19,7 +19,8 @@
     "require": {
         "php": ">=7.0",
         "mnapoli/silly": "^1.7",
-        "symfony/process": "^4.0"
+        "symfony/process": "^4.0",
+        "guzzlehttp/guzzle": "^6.3"
     },
     "minimum-stability": "dev"
 }

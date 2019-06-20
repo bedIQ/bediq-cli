@@ -21,6 +21,7 @@ use Bediq\Cli\Provision;
 use Bediq\Cli\Filesystem;
 use Bediq\Cli\Lxc;
 use Bediq\Cli\WP;
+use Bediq\Cli\Generate;
 
 use function Bediq\Cli\info;
 use function Bediq\Cli\error;
@@ -40,25 +41,10 @@ $app->command('test', function () {
     $apt  = new Apt($cli, $file);
     $lxd  = new Lxc($cli, $file);
     $wp   = new WP($cli, $file);
+    $nginx   = new Nginx($cli, $file);
 
-    $path = '/var/www/html/';
+    $path      = '/var/www/html/';
     $container = 'example-com';
-
-    // output('Downloading WordPress...');
-    // $wp->download($container, $path);
-    // echo $wp->generateConfig($container, $config, $path);
-
-    // $mysqlPass = bin2hex(random_bytes(12));
-    // $apt->ensureMysqlInstalled($mysqlPass, $container);
-    // echo $lxd->exec($container, 'sh -c "grep \'password=\' ~/.my.cnf | awk -F= \'{ print $NF }\'"');
-    // $pass = $lxd->exec($container, 'sh -c "grep \'password=\' ~/.my.cnf"');
-    // $pass = explode('=', $pass);
-    // print_r( $pass[1] );
-    // $pass = bin2hex(random_bytes(12));
-    // echo $lxd->exec($container, 'sh -c "echo \'[client]\' >> hello.txt"');
-    // echo $lxd->exec($container, 'sh -c "echo \'user=root\' >> hello.txt"');
-    // echo $lxd->exec($container, 'sh -c "echo \'password=' . $pass . '\' >> hello.txt"');
-    // echo $wp->generateConfig($container, $config, $path);
 });
 
 $app->command('provision:vm', function (SymfonyStyle $io) {
@@ -308,6 +294,24 @@ $app->command('site:delete domain [--type=]', function ($domain, $type) {
 
     info("Site $domain deleted");
 })->descriptions('Delete the site.');
+
+$app->command('site:generate url static [--key=]', function($url, $static, $key) {
+    $starttime = microtime(true);
+
+    $generate = new Generate($url, $static, $key);
+    $generate->handle();
+
+    $endtime = microtime(true);
+    $timediff = $endtime - $starttime;
+
+    output('Time Elapsed: ' . $timediff);
+
+    info('Site generated');
+})->descriptions('Generate a static site.', [
+    'url'    => 'The url to the WP installation.',
+    'static' => 'Domain name of the static site (without http).',
+    '--key'  => 'bedIQ site secret key'
+]);
 
 $app->command('update:domain domain [extra]', function ($domain, $extra) {
 
