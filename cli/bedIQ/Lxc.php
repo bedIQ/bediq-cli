@@ -40,6 +40,32 @@ class Lxc
     }
 
     /**
+     * Copy a container
+     *
+     * @param  string $from
+     * @param  string $to
+     *
+     * @return string
+     */
+    public function copyContainer($from, $to)
+    {
+        $this->cli->run("lxc copy {$from} {$to}");
+        $this->start($to);
+
+        while (true) {
+            $ip = $this->getIp($to);
+
+            if ($ip) {
+                break;
+            }
+
+            sleep(1);
+        }
+
+        return $ip;
+    }
+
+    /**
      * Check if a container is in running state
      *
      * @param  string  $container
@@ -218,6 +244,9 @@ class Lxc
      */
     public function nameByDomain($domain)
     {
-        return str_replace(['.', '_'], '-', $domain);
+        $domain = str_replace(['.', '_'], '-', $domain);
+        $domain = strtolower($domain);
+
+        return $domain;
     }
 }

@@ -107,7 +107,7 @@ $app->command('provision:vm', function (SymfonyStyle $io) {
     $cli->quietly('lxc list');
     $ip = $lxd->launch('base');
 
-    // info('Base IP address: ' . $ip);
+    $this->runCommand("provision:container base");
 
     info("bedIQ installed");
 })->descriptions('Provision the bediq VM');
@@ -214,9 +214,15 @@ $app->command('site:create domain [--type=] [--title=] [--email=] [--username=] 
         // check if the container exists
         // if not, launch a new one
         if (!$lxd->exists($container)) {
-            $ip = $lxd->launch($container);
 
-            $this->runCommand("provision:container {$container}");
+            if ($lxd->exists('base')) {
+                output('Copying base to '. $container);
+                $ip = $lxd->copyContainer('base', $container);
+            } else {
+                $ip = $lxd->launch($container);
+
+                $this->runCommand("provision:container {$container}");
+            }
         } else {
             if (!$lxd->isRunning($container)) {
                 $lxd->start($container);

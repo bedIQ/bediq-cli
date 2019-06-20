@@ -79,6 +79,7 @@ EOF;
     {
         $this->exec($container, 'wp db create --allow-root --path=' . $path);
         $this->exec($container, 'wp core install --url="http://' . $url .'" --title="' . $title .'" --admin_user="' . $username .'" --admin_password="' . $pass .'" --admin_email="' . $email .'" --allow-root --path=' . $path);
+        $this->exec($container, 'wp option update blogdescription "Just another bedIQ Site" --allow-root --path=' . $path);
         $this->exec($container, 'wp rewrite structure "/%postname%/" --hard --allow-root --path=' . $path);
         $this->exec($container, 'wp plugin delete akismet hello --allow-root --path=' . $path);
     }
