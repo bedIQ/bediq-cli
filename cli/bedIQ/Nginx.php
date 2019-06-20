@@ -60,7 +60,46 @@ class Nginx
         $this->files->put('/etc/nginx/sites-available/' . $domain, $config);
         $this->files->symlink('/etc/nginx/sites-available/' . $domain, '/etc/nginx/sites-enabled/' . $domain);
 
+        $this->addHostEntry($domain);
+
         $this->reloadNginx();
+    }
+
+    /**
+     * Add domain to hosts file
+     *
+     * @param string $domain
+     */
+    public function addHostEntry($domain)
+    {
+        $hostFile   = '/etc/hosts';
+        $line       = "127.0.0.1\t{$domain}\n";
+        $content    = $this->files->get( $hostFile );
+
+        if ( ! preg_match( "/\s+{$domain}\$/m", $content ) ) {
+            $this->cli->run( 'echo "' . $line . '" | sudo tee -a ' . $hostFile );
+            output( 'Added domain to /etc/hosts' );
+        }
+    }
+
+    /**
+     * Remove domain from host entry
+     *
+     * @param  string $domain
+     *
+     * @return void
+     */
+    public function removeHostEntry($domain)
+    {
+        $hostFile   = '/etc/hosts';
+        $content    = $this->files->get( $hostFile );
+
+        if ( preg_match( "/\s+{$domain}\$/m", $content ) ) {
+            $this->cli->run( 'sed -ie "/[[:space:]]' . $domain . '/d" ' . $hostFile );
+            info('Removed host entry');
+        } else {
+            warning('Could not remove');
+        }
     }
 
     /**
@@ -101,6 +140,8 @@ class Nginx
 
         $this->files->put('/etc/nginx/sites-available/' . $domain, $config);
         $this->files->symlink('/etc/nginx/sites-available/' . $domain, '/etc/nginx/sites-enabled/' . $domain);
+
+        $this->addHostEntry($domain);
 
         $this->reloadNginx();
     }
@@ -170,6 +211,8 @@ class Nginx
 
         $this->files->unlink('/etc/nginx/sites-available/' . $domain);
         $this->files->unlink('/etc/nginx/sites-enabled/' . $domain);
+
+        $this->removeHostEntry($domain);
 
         $this->reloadNginx();
     }
