@@ -202,7 +202,7 @@ class Generate
         })->then(function() {
             $this->saveAssets($this->styles);
         })->then(function() {
-            info('Done!' . PHP_EOL;
+            echo 'Done!' . PHP_EOL;
         });
     }
 
