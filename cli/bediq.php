@@ -232,8 +232,15 @@ $app->command('site:create domain [--type=] [--title=] [--email=] [--username=] 
             'siteid' => $siteKey,
         ];
 
-        $plugins = ['weforms', 'advanced-custom-fields'];
-        $themes  = ['hestia'];
+        $plugins = [
+            // 'weforms',
+            'advanced-custom-fields',
+            'https://github.com/tareq1988/wp-static-api/archive/master.zip',
+            'https://github.com/bedIQ/bediq/archive/master.zip',
+        ];
+        $themes = [
+            // 'hestia'
+        ];
 
         output('Downloading WordPress...');
         $wp->download($container, $path);
@@ -247,6 +254,8 @@ $app->command('site:create domain [--type=] [--title=] [--email=] [--username=] 
 
         output('Installing themes...');
         $wp->installThemes($container, $path, $themes);
+
+        $wp->changeOwner($container);
 
         output('Create nginx proxy on VM...');
         $nginx->createWpProxy($domain, $ip);

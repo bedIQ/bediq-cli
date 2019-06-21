@@ -42,7 +42,7 @@ define( 'DISALLOW_FILE_EDIT', true );
 
 // bedIQ settings
 define( 'BEDIQ_DEV_MODE', false );
-define( 'BEDIQ_SITE_ID', '$siteId' );
+define( 'BEDIQ_SITE_KEY', '$siteId' );
 define( 'AS3CF_SETTINGS', serialize( array(
     'provider' => 'gcp'
 ) ) );
@@ -95,6 +95,9 @@ EOF;
      */
     public function installPlugins($container, $path, array $plugins)
     {
+        if (!$plugins) {
+            return;
+        }
         return $this->exec($container, 'wp plugin install --activate ' . implode(' ', $plugins) . ' --allow-root --path=' . $path);
     }
 
@@ -109,7 +112,23 @@ EOF;
      */
     public function installThemes($container, $path, array $themes)
     {
+        if (!$themes) {
+            return;
+        }
+
         return $this->exec($container, 'wp theme install ' . implode(' ', $themes) . ' --allow-root --path=' . $path);
+    }
+
+    /**
+     * Change the WP installation ownership back to www-data
+     *
+     * @param  string $container
+     *
+     * @return string
+     */
+    public function changeOwner($container)
+    {
+        return $this->exec($container, 'sh -c "chown -R www-data:www-data /var/www/html"');
     }
 
     public function backup($container, $path)
