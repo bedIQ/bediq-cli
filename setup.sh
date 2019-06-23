@@ -41,7 +41,7 @@ function setup_php() {
         add-apt-repository -y ppa:ondrej/php
         apt-get update > /dev/null 2>&1
         # Installing php-cli, which is the minimum requirement to run EasyEngine
-        apt-get -y install php7.3-cli php7.3-curl php7.3-zip
+        apt-get -y install php7.3-cli php7.3-curl php7.3-zip php7.3-xml
     fi
 }
 
