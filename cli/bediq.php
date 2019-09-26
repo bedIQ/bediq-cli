@@ -333,4 +333,20 @@ $app->command('update:domain domain [extra]', function ($domain, $extra) {
     info('Domain updated');
 });
 
+$app->command('db:export domain', function ($domain) {
+
+    $file   = new Filesystem();
+    $cli    = new CommandLine();
+    $lxd    = new Lxc($cli, $file);
+    $wp     = new WP($cli, $file);
+
+    $path = '/var/www/html';
+
+    $container = $lxd->nameByDomain($domain);
+
+    $fileName = $wp->backup($container, $path);
+    output($fileName);
+
+})->descriptions('Export database.');
+
 $app->run();
