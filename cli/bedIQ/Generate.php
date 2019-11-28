@@ -158,9 +158,10 @@ class Generate
      */
     public function savePages($requests)
     {
+        $paths = [];
         $pool = new Pool($this->getClient(), $requests, [
             'concurrency' => $this->concurrency,
-            'fulfilled' => function ($response, $index) use ($requests) {
+            'fulfilled' => function ($response, $index) use ($requests, &$paths) {
                 // this is delivered each successful response
                 $url      = $requests[$index]->getUri();
                 $fullPath = $this->rootDir() . $this->domain . '/' . $url->getPath();
@@ -179,6 +180,8 @@ class Generate
 
                 $this->extractAssets($dom, $this->styles, 'style');
                 $this->extractAssets($dom, $this->scripts, 'script');
+
+                $paths[]    = '/' . $url->getPath() . '/index.html';
 
                 file_put_contents($fullPath . 'index.html', $content);
                 // echo $url->getPath() . PHP_EOL;
@@ -201,7 +204,10 @@ class Generate
             $this->saveAssets($this->scripts, 'js');
         })->then(function() {
             $this->saveAssets($this->styles, 'css');
-        })->then(function() {
+        })->then(function() use($paths) {
+            $pages = json_encode($paths, JSON_PRETTY_PRINT);
+            file_put_contents( $this->rootDir() . $this->domain . '/pages.json', $pages );
+
             echo 'Done!' . PHP_EOL;
         });
     }
