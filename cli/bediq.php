@@ -10,6 +10,9 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
     require __DIR__ . '/../../../autoload.php';
 }
 
+$dotenv = Dotenv\Dotenv::create(__DIR__.'/../');
+$dotenv->load();
+
 use Silly\Application;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -31,7 +34,7 @@ use function Bediq\Cli\warning;
 
 define('BEDIQ_STUBS', __DIR__ . '/stubs');
 
-$version = '1.0';
+$version = '2.0';
 
 $app = new Application('Ubuntu server management cli interface for bedIQ', $version);
 
@@ -45,6 +48,11 @@ $app->command('test', function () {
 
     $path      = '/var/www/html/';
     $container = 'example-com';
+
+    $bediqApi = new \Bediq\Cli\BedIQApi();
+
+    print_r($bediqApi->plugins());
+    print_r($bediqApi->themes());
 });
 
 $app->command('provision:vm', function (SymfonyStyle $io) {
@@ -162,10 +170,11 @@ $app->command('site:create domain [--type=] [--title=] [--email=] [--username=] 
         throw new Exception('Invalid supported site type');
     }
 
-    $cli   = new CommandLine();
-    $file  = new Filesystem();
-    $nginx = new Nginx($cli, $file);
-    $lxd   = new Lxc($cli, $file);
+    $cli            = new CommandLine();
+    $file           = new Filesystem();
+    $nginx          = new Nginx($cli, $file);
+    $lxd            = new Lxc($cli, $file);
+    $bediqApi       = new \Bediq\Cli\BedIQApi();
 
     if ($type == 'static') {
         $sitePath = Provision::sitePath($domain);
@@ -232,15 +241,9 @@ $app->command('site:create domain [--type=] [--title=] [--email=] [--username=] 
             'siteid' => $siteKey,
         ];
 
-        $plugins = [
-            // 'weforms',
-            'advanced-custom-fields',
-            'https://github.com/tareq1988/wp-static-api/archive/master.zip',
-            'https://github.com/bedIQ/bediq/archive/master.zip',
-        ];
-        $themes = [
-            // 'hestia'
-        ];
+        $plugins    = $bediqApi->plugins();
+
+        $themes     = $bediqApi->themes();;
 
         output('Downloading WordPress...');
         $wp->download($container, $path);
