@@ -198,9 +198,9 @@ class Generate
         // Force the pool of requests to complete.
         $promise->wait();
         $promise->then(function() {
-            $this->saveAssets($this->scripts);
+            $this->saveAssets($this->scripts, 'js');
         })->then(function() {
-            $this->saveAssets($this->styles);
+            $this->saveAssets($this->styles, 'css');
         })->then(function() {
             echo 'Done!' . PHP_EOL;
         });
@@ -247,7 +247,7 @@ class Generate
      *
      * @return void
      */
-    function saveAssets($scripts)
+    function saveAssets($scripts, $type)
     {
         if (!$scripts) {
             return;
@@ -262,6 +262,10 @@ class Generate
         foreach ($scripts as $key => $url) {
             $requests[$key] = new Request('GET', $url);
         }
+
+        // save JS and CSS in a JSON file for caching via service worker
+        $json_string = json_encode($scripts, JSON_PRETTY_PRINT);
+        file_put_contents( $this->rootDir() . $this->domain . '/' . $type . '.json', $json_string );
 
         $pool = new Pool($client, $requests, [
             'concurrency' => $this->concurrency,
