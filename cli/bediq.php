@@ -34,7 +34,7 @@ use function Bediq\Cli\warning;
 
 define('BEDIQ_STUBS', __DIR__ . '/stubs');
 
-$version = '2.0';
+$version = '1.0';
 
 $app = new Application('Ubuntu server management cli interface for bedIQ', $version);
 
