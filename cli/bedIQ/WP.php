@@ -30,10 +30,10 @@ class WP extends Lxc
      */
     public function generateConfig($container, $config, $path)
     {
-        return $this->exec($container, "wp core config --dbname={$config['dbname']} --dbuser={$config['dbuser']} --dbpass={$config['dbpass']} --allow-root --path={$path} --extra-php <<'PHP'\n" . $this->extraPhp($config['siteid']) . "\nPHP");
+        return $this->exec($container, "wp core config --dbname={$config['dbname']} --dbuser={$config['dbuser']} --dbpass={$config['dbpass']} --allow-root --path={$path} --extra-php <<'PHP'\n" . $this->extraPhp($config['siteid'],$config['sitekey'] ) . "\nPHP");
     }
 
-    public function extraPhp($siteId)
+    public function extraPhp($siteId, $siteKey)
     {
         $var = <<<EOF
 define( 'WP_DEBUG', true );
@@ -42,7 +42,8 @@ define( 'DISALLOW_FILE_EDIT', true );
 
 // bedIQ settings
 define( 'BEDIQ_DEV_MODE', false );
-define( 'BEDIQ_SITE_KEY', '$siteId' );
+define( 'BEDIQ_SITE_ID', '$siteId' );
+define( 'BEDIQ_SITE_KEY', '$siteKey' );
 define( 'AS3CF_SETTINGS', serialize( array(
     'provider' => 'gcp'
 ) ) );
@@ -99,6 +100,11 @@ EOF;
             return;
         }
         return $this->exec($container, 'wp plugin install --activate ' . implode(' ', $plugins) . ' --allow-root --path=' . $path);
+    }
+
+    public function installMUPlugins($container, $path)
+    {
+        return $this->exec($container, 'unzip https://storage.googleapis.com/bediq-backups/bediq-core/mu-plugins.zip -d /web/app/' . $path);
     }
 
     /**

@@ -162,7 +162,7 @@ $app->command('provision:container container', function ($container) {
     $lxd->restartService($container, 'php7.3-fpm');
 })->descriptions('Provision the LXD container');
 
-$app->command('site:create domain [--type=] [--title=] [--email=] [--username=] [--password=] [--site-key=]', function ($domain, $type, $title, $email, $username, $password, $siteKey) {
+$app->command('site:create domain [--type=] [--title=] [--email=] [--username=] [--password=] [--site-key=] [--site-id=]', function ($domain, $type, $title, $email, $username, $password, $siteKey, $siteId) {
 
     $allowedTypes = ['static', 'wp'];
 
@@ -238,7 +238,8 @@ $app->command('site:create domain [--type=] [--title=] [--email=] [--username=] 
             'dbname' => 'bediq',
             'dbuser' => 'root',
             'dbpass' => trim($pass[1]),
-            'siteid' => $siteKey,
+            'siteid' => $siteId,
+            'sitekey' => $siteKey,
         ];
 
         $plugins    = $bediqApi->plugins();
@@ -257,6 +258,9 @@ $app->command('site:create domain [--type=] [--title=] [--email=] [--username=] 
 
         output('Installing themes...');
         $wp->installThemes($container, $path, $themes);
+
+        output('Importing MU plugins...');
+        $wp->installMUPlugins($container, $path);
 
         $wp->changeOwner($container);
 
