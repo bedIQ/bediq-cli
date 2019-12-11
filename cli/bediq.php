@@ -235,10 +235,10 @@ $app->command('site:create domain [--type=] [--title=] [--email=] [--username=] 
         $pass = explode('=', $pass);
 
         $config = [
-            'dbname' => 'bediq',
-            'dbuser' => 'root',
-            'dbpass' => trim($pass[1]),
-            'siteid' => $siteId,
+            'dbname'  => 'bediq',
+            'dbuser'  => 'root',
+            'dbpass'  => trim($pass[1]),
+            'siteid'  => $siteId,
             'sitekey' => $siteKey,
         ];
 

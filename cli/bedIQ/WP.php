@@ -119,7 +119,8 @@ EOF;
      */
     public function defaultDataImport($container, $path)
     {
-        return $this->exec($container, 'wp db import https://storage.googleapis.com/bediq-backups/bediq-core/bediq.sql --path=' . $path);
+        $this->exec($container, 'wget https://storage.googleapis.com/bediq-backups/bediq-core/bediq.sql');
+        return $this->exec($container, 'wp db import --allow-root bediq.sql --path=' . $path);
     }
 
 
@@ -143,7 +144,7 @@ EOF;
 
     public function activateTheme($container, $path, $theme)
     {
-        return $this->exec($container, 'wp theme activate '.$theme .' --path='. $path);
+        return $this->exec($container, 'wp theme activate --allow-root '.$theme .' --path='. $path);
     }
 
 
