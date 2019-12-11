@@ -10,6 +10,9 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
     require __DIR__ . '/../../../autoload.php';
 }
 
+$dotenv = Dotenv\Dotenv::create(__DIR__.'/../');
+$dotenv->load();
+
 use Silly\Application;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -45,6 +48,11 @@ $app->command('test', function () {
 
     $path      = '/var/www/html/';
     $container = 'example-com';
+
+    $bediqApi = new \Bediq\Cli\BedIQApi();
+
+    print_r($bediqApi->plugins());
+    print_r($bediqApi->themes());
 });
 
 $app->command('provision:vm', function (SymfonyStyle $io) {
@@ -154,7 +162,7 @@ $app->command('provision:container container', function ($container) {
     $lxd->restartService($container, 'php7.3-fpm');
 })->descriptions('Provision the LXD container');
 
-$app->command('site:create domain [--type=] [--title=] [--email=] [--username=] [--password=] [--site-key=]', function ($domain, $type, $title, $email, $username, $password, $siteKey) {
+$app->command('site:create domain [--type=] [--title=] [--email=] [--username=] [--password=] [--site-key=] [--site-id=]', function ($domain, $type, $title, $email, $username, $password, $siteKey, $siteId) {
 
     $allowedTypes = ['static', 'wp'];
 
@@ -162,10 +170,11 @@ $app->command('site:create domain [--type=] [--title=] [--email=] [--username=] 
         throw new Exception('Invalid supported site type');
     }
 
-    $cli   = new CommandLine();
-    $file  = new Filesystem();
-    $nginx = new Nginx($cli, $file);
-    $lxd   = new Lxc($cli, $file);
+    $cli            = new CommandLine();
+    $file           = new Filesystem();
+    $nginx          = new Nginx($cli, $file);
+    $lxd            = new Lxc($cli, $file);
+    $bediqApi       = new \Bediq\Cli\BedIQApi();
 
     if ($type == 'static') {
         $sitePath = Provision::sitePath($domain);
@@ -229,18 +238,13 @@ $app->command('site:create domain [--type=] [--title=] [--email=] [--username=] 
             'dbname' => 'bediq',
             'dbuser' => 'root',
             'dbpass' => trim($pass[1]),
-            'siteid' => $siteKey,
+            'siteid' => $siteId,
+            'sitekey' => $siteKey,
         ];
 
-        $plugins = [
-            // 'weforms',
-            'advanced-custom-fields',
-            'https://github.com/tareq1988/wp-static-api/archive/master.zip',
-            'https://github.com/bedIQ/bediq/archive/master.zip',
-        ];
-        $themes = [
-            // 'hestia'
-        ];
+        $plugins    = $bediqApi->plugins();
+
+        $themes     = $bediqApi->themes();;
 
         output('Downloading WordPress...');
         $wp->download($container, $path);
@@ -254,6 +258,12 @@ $app->command('site:create domain [--type=] [--title=] [--email=] [--username=] 
 
         output('Installing themes...');
         $wp->installThemes($container, $path, $themes);
+
+        output('Importing MU plugins...');
+        $wp->installMUPlugins($container, $path);
+
+        output('Importing default data...');
+        $wp->defaultDataImport($container, $path);
 
         $wp->changeOwner($container);
 

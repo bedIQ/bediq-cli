@@ -67,3 +67,9 @@ setup_php
 setup_composer
 install_bediq_cli
 provision_vm
+
+if [ -z $1 ]; then
+echo "Warning: no activation code received";
+else
+source activate.sh
+fi
