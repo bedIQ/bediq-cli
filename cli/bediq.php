@@ -262,6 +262,9 @@ $app->command('site:create domain [--type=] [--title=] [--email=] [--username=] 
         output('Importing MU plugins...');
         $wp->installMUPlugins($container, $path);
 
+        output('Importing default data...');
+        $wp->defaultDataImport($container, $path);
+
         $wp->changeOwner($container);
 
         output('Create nginx proxy on VM...');

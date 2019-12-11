@@ -102,10 +102,26 @@ EOF;
         return $this->exec($container, 'wp plugin install --activate ' . implode(' ', $plugins) . ' --allow-root --path=' . $path);
     }
 
+    /**
+     * @param $container
+     * @param $path
+     * @return string
+     */
     public function installMUPlugins($container, $path)
     {
-        return $this->exec($container, 'unzip https://storage.googleapis.com/bediq-backups/bediq-core/mu-plugins.zip -d /web/app/' . $path);
+        return $this->exec($container, 'unzip https://storage.googleapis.com/bediq-backups/bediq-core/mu-plugins.zip -d' . $path .'/web/app/');
     }
+
+    /**
+     * @param $container
+     * @param $path
+     * @return string
+     */
+    public function defaultDataImport($container, $path)
+    {
+        return $this->exec($container, 'wp db import https://storage.googleapis.com/bediq-backups/bediq-core/bediq.sql --path=' . $path);
+    }
+
 
     /**
      * Install themes on a site
