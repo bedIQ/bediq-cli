@@ -259,6 +259,9 @@ $app->command('site:create domain [--type=] [--title=] [--email=] [--username=] 
         output('Installing themes...');
         $wp->installThemes($container, $path, $themes);
 
+        output('Activating bediq theme...');
+        $wp->activateTheme($container, $path, 'bediq');
+
         output('Importing MU plugins...');
         $wp->installMUPlugins($container, $path);
 

@@ -141,6 +141,12 @@ EOF;
         return $this->exec($container, 'wp theme install ' . implode(' ', $themes) . ' --allow-root --path=' . $path);
     }
 
+    public function activateTheme($container, $path, $theme)
+    {
+        return $this->exec($container, 'wp theme activate '.$theme .' --path='. $path);
+    }
+
+
     /**
      * Change the WP installation ownership back to www-data
      *
