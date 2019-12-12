@@ -109,7 +109,10 @@ EOF;
      */
     public function installMUPlugins($container, $path)
     {
-        return $this->exec($container, 'unzip https://storage.googleapis.com/bediq-backups/bediq-core/mu-plugins.zip -d' . $path .'/web/app/');
+        $this->exec($container, 'sudo apt-get install unzip'); // in case unzip was not installed
+        $this->exec($container, 'wget https://storage.googleapis.com/bediq-backups/bediq-core/mu-plugins.zip');
+        $this->exec($container, 'unzip mu-plugins.zip');
+        return $this->exec($container, 'mv mu-plugins ' . $path .'/wp-content/');
     }
 
     /**
