@@ -109,7 +109,10 @@ EOF;
      */
     public function installMUPlugins($container, $path)
     {
-        return $this->exec($container, 'unzip https://storage.googleapis.com/bediq-backups/bediq-core/mu-plugins.zip -d' . $path .'/web/app/');
+        $this->exec($container, 'sudo apt-get install unzip'); // in case unzip was not installed
+        $this->exec($container, 'wget https://storage.googleapis.com/bediq-backups/bediq-core/mu-plugins.zip');
+        $this->exec($container, 'unzip mu-plugins.zip');
+        return $this->exec($container, 'mv mu-plugins ' . $path .'/wp-content/');
     }
 
     /**
@@ -119,7 +122,8 @@ EOF;
      */
     public function defaultDataImport($container, $path)
     {
-        return $this->exec($container, 'wp db import https://storage.googleapis.com/bediq-backups/bediq-core/bediq.sql --path=' . $path);
+        $this->exec($container, 'wget https://storage.googleapis.com/bediq-backups/bediq-core/bediq.sql');
+        return $this->exec($container, 'wp db import --allow-root bediq.sql --path=' . $path);
     }
 
 
@@ -143,7 +147,7 @@ EOF;
 
     public function activateTheme($container, $path, $theme)
     {
-        return $this->exec($container, 'wp theme activate '.$theme .' --path='. $path);
+        return $this->exec($container, 'wp theme activate --allow-root '.$theme .' --path='. $path);
     }
 
 
