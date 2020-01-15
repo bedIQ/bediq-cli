@@ -8,4 +8,3 @@ function activate() {
 }
 
 activate $1
-
