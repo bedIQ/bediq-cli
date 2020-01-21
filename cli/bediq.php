@@ -362,28 +362,28 @@ $app->command('db:export domain', function ($domain) {
 
 })->descriptions('Export database.');
 
-$app->command('site:ssl domain', function ($domain) {
+$app->command('site:ssl static_url wp_url', function ($static_url, $wp_url) {
     $cli = new CommandLine();
     $file = new Filesystem();
     $nginx = new Nginx($cli, $file);
     $lxd = new Lxc($cli, $file);
 
-    $container = $lxd->nameByDomain($domain);
+    $container = $lxd->nameByDomain($static_url);
     $ip = $lxd->getIp($container);
 
-    output("Adding certificate for {$domain}...");
-
     // apply ssl for static
-    $nginx->applySSL($domain);
-    $cli->run('certbot certonly -d '.$domain.'  --nginx');
+    output("Adding certificate for {$static_url}...");
+    $cli->run('certbot certonly -d '.$static_url.'  --nginx');
+    $nginx->applySSL($static_url);
 
     // apply ssl for staging
-    $cli->run('certbot certonly -d staging-'.$domain.'  --nginx');
-    $nginx->applySSL($domain, $ip);
+    output("Adding certificate for {$wp_url}...");
+    $cli->run('certbot certonly -d staging-'.c.'  --nginx');
+    $nginx->applySSL($wp_url, $ip);
 
     $nginx->reloadNginx();
 
-    output('SSL applied to '.$domain);
+    output('SSL applied to '.$static_url.' and '.$wp_url);
 
 })->descriptions('SSL certificate install.');
 
