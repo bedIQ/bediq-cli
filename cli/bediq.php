@@ -362,4 +362,25 @@ $app->command('db:export domain', function ($domain) {
 
 })->descriptions('Export database.');
 
+$app->command('site:ssl domain', function ($domain) {
+    $cli = new CommandLine();
+    $file = new Filesystem();
+    $nginx = new Nginx($cli, $file);
+    $lxd = new Lxc($cli, $file);
+
+    $container = $lxd->nameByDomain($domain);
+    $ip = $lxd->getIp($container);
+
+    $cli->run('certbot certonly -d '.$domain);
+
+    // apply ssl for static
+    $nginx->applySSL($domain);
+
+    // apply ssl for staging
+    $nginx->applySSL($domain, $ip);
+
+    output('SSL applied to '.$domain);
+
+})->descriptions('SSL certificate install.');
+
 $app->run();

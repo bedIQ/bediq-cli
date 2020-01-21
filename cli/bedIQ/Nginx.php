@@ -66,6 +66,40 @@ class Nginx
     }
 
     /**
+     * @param  void $domain
+     *
+     * @param bool $ip
+     *
+     * if ip exist that means its a wp site for staging
+     * otherwise it's a static site
+     *
+     * @return void
+     */
+    public function applySSL($domain, $ip = false)
+    {
+        $domain = strtolower($domain);
+
+        output("Creating nginx entry with ssl for {$domain}...");
+
+        $file = 'static';
+
+        if ($ip) {
+            $file = 'wp-proxy';
+        }
+
+        $config = $this->files->get(BEDIQ_STUBS . '/nginx/site/'.$file.'-ssl.conf');
+        $config = str_replace('{domain}', $domain, $config);
+
+        if ($ip) {
+            $config = str_replace('{ip}', $ip, $config);
+        }
+
+        $this->files->put('/etc/nginx/sites-available/' . $domain, $config);
+
+        $this->reloadNginx();
+    }
+
+    /**
      * Add domain to hosts file
      *
      * @param string $domain
