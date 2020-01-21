@@ -371,13 +371,15 @@ $app->command('site:ssl domain', function ($domain) {
     $container = $lxd->nameByDomain($domain);
     $ip = $lxd->getIp($container);
 
-    $cli->run('certbot certonly -d '.$domain);
+    $cli->run('certbot certonly -d '.$domain.'  --nginx');
 
     // apply ssl for static
     $nginx->applySSL($domain);
 
     // apply ssl for staging
     $nginx->applySSL($domain, $ip);
+
+    $nginx->reloadNginx();
 
     output('SSL applied to '.$domain);
 
