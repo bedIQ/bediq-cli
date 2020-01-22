@@ -9,7 +9,7 @@ networks:
   type: ""
 storage_pools:
 - config:
-    size: 15GB
+    size: 4GB
   description: ""
   name: default
   driver: zfs

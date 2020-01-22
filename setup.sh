@@ -10,7 +10,9 @@ function update_apt() {
 function setup_prerequisite() {
     echo "Installing pre-requisites..."
     # Adding software-properties-common for add-apt-repository.
-    apt-get install -y software-properties-common
+    apt-get install -y software-properties-common python-certbot-nginx
+
+    add-apt-repository -y ppa:certbot/certbot
 
     apt-get install -y git
 
@@ -68,8 +70,4 @@ setup_composer
 install_bediq_cli
 provision_vm
 
-if [ -z $1 ]; then
-echo "Warning: no activation code received";
-else
 source activate.sh
-fi

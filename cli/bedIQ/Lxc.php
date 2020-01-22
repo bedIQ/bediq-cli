@@ -153,6 +153,7 @@ class Lxc
      * @param  string $container
      *
      * @return string The IP address
+     * @throws \Exception
      */
     public function launch($container)
     {

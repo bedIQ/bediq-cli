@@ -35,7 +35,7 @@ class BedIQApi
             } else {
                 echo $e->getMessage();
             }
-            return false;
+            return [];
         }
 
         $plugins = json_decode($response->getBody()->getContents(), true);
@@ -62,7 +62,7 @@ class BedIQApi
             } else {
                 echo $e->getMessage();
             }
-            return false;
+            return [];
         }
 
         $themes = json_decode($response->getBody()->getContents(), true);
