@@ -378,7 +378,7 @@ $app->command('site:ssl static_url wp_url', function ($static_url, $wp_url) {
 
     // apply ssl for staging
     output("Adding certificate for {$wp_url}...");
-    $cli->run('certbot certonly -d staging-' . $wp_url . '  --nginx');
+    $cli->run('certbot certonly -d ' . $wp_url . '  --nginx');
     $nginx->applySSL($wp_url, $ip);
 
     $nginx->reloadNginx();
