@@ -69,4 +69,31 @@ class BedIQApi
 
         return $themes;
     }
+
+    public function getLatestBaseToolPath()
+    {
+        $client = new Client(['verify' => false]);
+
+        try {
+            $response = $client->request('GET', $this->url . '/v1/tools/latest_base_tool', [
+                'verify' => false,
+                'headers' => [
+                    'CLI-Key' => $this->cliKey
+                ]
+            ]);
+        } catch (RequestException $e) {
+            if ($e->hasResponse()) {
+                $exception = (string) $e->getResponse()->getBody();
+                $exception = json_decode($exception);
+                print_r( $exception );
+            } else {
+                echo $e->getMessage();
+            }
+            return [];
+        }
+
+        $data = json_decode($response->getBody()->getContents(), true);
+
+        return $data['url'];
+    }
 }

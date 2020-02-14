@@ -76,7 +76,7 @@ class Provision
     }
 
     /**
-     * Write basic confi on sites.json
+     * Write basic config on sites.json
      *
      * @return void
      */
@@ -92,8 +92,8 @@ class Provision
     /**
      * Add the given path to the configuration.
      *
-     * @param  string  $path
-     * @param  array  $info
+     * @param $site
+     * @param array $info
      * @return void
      */
     public function addSite($site, $info = [])
@@ -106,7 +106,7 @@ class Provision
     /**
      * Remove the given path from the configuration.
      *
-     * @param  string  $path
+     * @param $site
      * @return void
      */
     public function removeSite($site)

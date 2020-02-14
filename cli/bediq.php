@@ -387,4 +387,13 @@ $app->command('site:ssl static_url wp_url', function ($static_url, $wp_url) {
 
 })->descriptions('SSL certificate install.');
 
+$app->command('tools:update', function (SymfonyStyle $io) {
+
+    $file   = new Filesystem();
+    $cli    = new CommandLine();
+    $bediqApi = new \Bediq\Cli\BedIQApi();
+
+    output($cli->run('wget -P /root '.$bediqApi->getLatestBaseToolPath()));
+})->descriptions('WP Tools update.');
+
 $app->run();
