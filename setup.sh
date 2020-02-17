@@ -63,11 +63,17 @@ function provision_vm() {
     bediq provision:vm
 }
 
+function server_cache() {
+    echo "Fetching bediq server cache files ..."
+    bediq tools:update
+}
+
 update_apt
 setup_prerequisite
 setup_php
 setup_composer
 install_bediq_cli
 provision_vm
+server_cache
 
 source activate.sh
