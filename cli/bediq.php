@@ -395,7 +395,15 @@ $app->command('tools:update', function (SymfonyStyle $io) {
     $bedIQApi = new \Bediq\Cli\BedIQApi();
 
     $baseFilePath = $bedIQApi->getLatestBaseToolPath();
-    if ($baseFilePath && isset($baseFilePath['url']) && $baseFilePath['url']) {
+    if (!$baseFilePath) {
+        output('No base file found on cloud');
+    }
+
+    if (is_string($baseFilePath)) {
+        $baseFilePath = json_decode($baseFilePath, true);
+    }
+
+    if (isset($baseFilePath['url']) && $baseFilePath['url']) {
 
         $urlParts = explode('/', $baseFilePath['url']);
         $oldFileName = end($urlParts);
@@ -412,6 +420,7 @@ $app->command('tools:update', function (SymfonyStyle $io) {
     } else {
         output('No base file found on cloud');
     }
+
 })->descriptions('WP Tools update.');
 
 $app->run();

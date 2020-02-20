@@ -39,9 +39,8 @@ class BedIQApi
     public function getLatestBaseToolPath()
     {
         try {
-            return json_decode($this->bedIQAPIHelper->getBaseToolFromAPI(), true);
+            return $this->bedIQAPIHelper->getBaseToolFromAPI();
         }catch (\Exception $exception) {
-            output($exception->getMessage());
             return false;
         }
     }
