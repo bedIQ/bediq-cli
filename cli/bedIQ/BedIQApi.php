@@ -2,98 +2,47 @@
 namespace Bediq\Cli;
 
 
-use GuzzleHttp\Client;
+use Bediq\Cli\Helpers\BedIQAPIHelper;
 use GuzzleHttp\Exception\RequestException;
 
 class BedIQApi
 {
-    private $url;
-    private $cliKey;
+    public $bedIQAPIHelper;
 
     public function __construct()
     {
-        $this->url = getenv('BEDIQ_API_ENDPOINT');
-        $this->cliKey = getenv('BEDIQ_KEY');
+        $this->bedIQAPIHelper = new BedIQAPIHelper();
     }
 
     public function plugins()
     {
-        $client = new Client(['verify' => false]);
+        $plugins = $this->bedIQAPIHelper->getPluginsFromServer();
 
-        try {
-            $response = $client->request('GET', $this->url . '/v1/tools/plugins', [
-                'verify' => false,
-                'headers' => [
-                    'CLI-Key' => $this->cliKey
-                ]
-            ]);
-        } catch (RequestException $e) {
-            if ($e->hasResponse()) {
-                $exception = (string) $e->getResponse()->getBody();
-                $exception = json_decode($exception);
-                print_r( $exception );
-            } else {
-                echo $e->getMessage();
-            }
-            return [];
+        if (!$plugins) {
+            return $this->bedIQAPIHelper->getPluginsFromAPI();
         }
-
-        $plugins = json_decode($response->getBody()->getContents(), true);
 
         return $plugins;
     }
 
     public function themes()
     {
-        $client = new Client(['verify' => false]);
+        $themes = $this->bedIQAPIHelper->getThemesFromServer();
 
-        try {
-            $response = $client->request('GET', $this->url . '/v1/tools/themes', [
-                'verify' => false,
-                'headers' => [
-                    'CLI-Key' => $this->cliKey
-                ]
-            ]);
-        } catch (RequestException $e) {
-            if ($e->hasResponse()) {
-                $exception = (string) $e->getResponse()->getBody();
-                $exception = json_decode($exception);
-                print_r( $exception );
-            } else {
-                echo $e->getMessage();
-            }
-            return [];
+        if (!$themes) {
+            return $this->bedIQAPIHelper->getThemesFromAPI();
         }
-
-        $themes = json_decode($response->getBody()->getContents(), true);
 
         return $themes;
     }
 
     public function getLatestBaseToolPath()
     {
-        $client = new Client(['verify' => false]);
-
         try {
-            $response = $client->request('GET', $this->url . '/v1/tools/latest_base_tool', [
-                'verify' => false,
-                'headers' => [
-                    'CLI-Key' => $this->cliKey
-                ]
-            ]);
-        } catch (RequestException $e) {
-            if ($e->hasResponse()) {
-                $exception = (string) $e->getResponse()->getBody();
-                $exception = json_decode($exception);
-                print_r( $exception );
-            } else {
-                echo $e->getMessage();
-            }
-            return [];
+            return json_decode($this->bedIQAPIHelper->getBaseToolFromAPI(), true);
+        }catch (\Exception $exception) {
+            output($exception->getMessage());
+            return false;
         }
-
-        $data = json_decode($response->getBody()->getContents(), true);
-
-        return $data['url'];
     }
 }

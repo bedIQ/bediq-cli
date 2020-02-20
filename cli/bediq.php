@@ -13,6 +13,7 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
 $dotenv = Dotenv\Dotenv::create(__DIR__.'/../');
 $dotenv->load();
 
+use Bediq\Cli\Helpers\BedIQAPIHelper;
 use Silly\Application;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -53,6 +54,7 @@ $app->command('test', function () {
 
     print_r($bediqApi->plugins());
     print_r($bediqApi->themes());
+
 });
 
 $app->command('provision:vm', function (SymfonyStyle $io) {
@@ -388,12 +390,28 @@ $app->command('site:ssl static_url wp_url', function ($static_url, $wp_url) {
 })->descriptions('SSL certificate install.');
 
 $app->command('tools:update', function (SymfonyStyle $io) {
+    $file  = new Filesystem();
     $cli    = new CommandLine();
-    $bediqApi = new \Bediq\Cli\BedIQApi();
+    $bedIQApi = new \Bediq\Cli\BedIQApi();
 
-    $cli->run('wget -P /root '.$bediqApi->getLatestBaseToolPath());
+    $baseFilePath = $bedIQApi->getLatestBaseToolPath();
+    if ($baseFilePath && isset($baseFilePath['url']) && $baseFilePath['url']) {
 
-    output('Cache files placed on server');
+        $urlParts = explode('/', $baseFilePath['url']);
+        $oldFileName = end($urlParts);
+
+        // removing previous zip file and extracted files
+        $cli->run('sudo rm -rf /root/base_zip');
+        $cli->run('sudo rm -rf /root/base_extracted_files');
+
+        // download and extract the base tool files to the server
+        output($cli->run('sudo wget -P /root/base_zip ' . $baseFilePath['url']));
+        output($cli->run('sudo unzip -o /root/base_zip/' . $oldFileName . ' -d /root/base_extracted_files/'));
+
+        output('Cache files placed on server');
+    } else {
+        output('No base file found on cloud');
+    }
 })->descriptions('WP Tools update.');
 
 $app->run();
