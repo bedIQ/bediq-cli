@@ -364,7 +364,7 @@ $app->command('db:export domain', function ($domain) {
 
 })->descriptions('Export database.');
 
-$app->command('site:ssl static_url wp_url', function ($static_url, $wp_url) {
+$app->command('site:ssl static_url wp_url email', function ($static_url, $wp_url, $email) {
     $cli   = new CommandLine();
     $file  = new Filesystem();
     $nginx = new Nginx($cli, $file);
@@ -375,12 +375,12 @@ $app->command('site:ssl static_url wp_url', function ($static_url, $wp_url) {
 
     // apply ssl for static
     output("Adding certificate for {$static_url}...");
-    $cli->run('certbot certonly -d ' . $static_url . '  --nginx');
+    $cli->run('certbot certonly -d ' . $static_url . '  --nginx --non-interactive --agree-tos -m '.$email);
     $nginx->applySSL($static_url);
 
     // apply ssl for staging
     output("Adding certificate for {$wp_url}...");
-    $cli->run('certbot certonly -d ' . $wp_url . '  --nginx');
+    $cli->run('certbot certonly -d ' . $wp_url . '  --nginx --non-interactive --agree-tos -m '.$email);
     $nginx->applySSL($wp_url, $ip);
 
     $nginx->reloadNginx();
