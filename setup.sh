@@ -76,4 +76,4 @@ install_bediq_cli
 provision_vm
 server_cache
 
-source activate.sh
+source /opt/bediq-cli/activate.sh

@@ -162,6 +162,8 @@ $app->command('provision:container container', function ($container) {
     output('Optimizing PHP...');
     $lxd->pushFile($container, BEDIQ_STUBS . '/php/php.ini', '/etc/php/7.3/fpm/conf.d/30-bediq');
     $lxd->restartService($container, 'php7.3-fpm');
+
+    $lxd->mount($container);
 })->descriptions('Provision the LXD container');
 
 $app->command('site:create domain [--type=] [--title=] [--email=] [--username=] [--password=] [--site-key=] [--site-id=]', function ($domain, $type, $title, $email, $username, $password, $siteKey, $siteId) {
@@ -269,6 +271,9 @@ $app->command('site:create domain [--type=] [--title=] [--email=] [--username=] 
 
         output('Importing default data...');
         $wp->defaultDataImport($container, $path);
+
+        $wp->optionSet($container, $path, 'siteurl', 'http://'.$domain);
+        $wp->optionSet($container, $path, 'home', 'http://'.$domain);
 
         $wp->changeOwner($container);
 
