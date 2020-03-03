@@ -102,6 +102,11 @@ EOF;
         return $this->exec($container, 'wp plugin install --activate ' . implode(' ', $plugins) . ' --allow-root --path=' . $path);
     }
 
+    public function activatePlugins($container, $path)
+    {
+        return $this->exec($container, 'wp plugin activate --all --allow-root --path='. $path);
+    }
+
     /**
      * @param $container
      * @param $path

@@ -163,7 +163,6 @@ $app->command('provision:container container', function ($container) {
     $lxd->pushFile($container, BEDIQ_STUBS . '/php/php.ini', '/etc/php/7.3/fpm/conf.d/30-bediq');
     $lxd->restartService($container, 'php7.3-fpm');
 
-    $lxd->mount($container);
 })->descriptions('Provision the LXD container');
 
 $app->command('site:create domain [--type=] [--title=] [--email=] [--username=] [--password=] [--site-key=] [--site-id=]', function ($domain, $type, $title, $email, $username, $password, $siteKey, $siteId) {
@@ -248,7 +247,9 @@ $app->command('site:create domain [--type=] [--title=] [--email=] [--username=] 
 
         $plugins    = $bediqApi->plugins();
 
-        $themes     = $bediqApi->themes();;
+        $themes     = $bediqApi->themes();
+
+        $lxd->mount($container);
 
         output('Downloading WordPress...');
         $wp->download($container, $path);
@@ -274,6 +275,9 @@ $app->command('site:create domain [--type=] [--title=] [--email=] [--username=] 
 
         $wp->optionSet($container, $path, 'siteurl', 'http://'.$domain);
         $wp->optionSet($container, $path, 'home', 'http://'.$domain);
+
+       // ensure all plugins are activated
+        $wp->activatePlugins($container, $path);
 
         $wp->changeOwner($container);
 
