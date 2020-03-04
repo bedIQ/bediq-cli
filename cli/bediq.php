@@ -382,6 +382,8 @@ $app->command('site:ssl static_url wp_url email', function ($static_url, $wp_url
     $container = $lxd->nameByDomain($static_url);
     $ip = $lxd->getIp($container);
 
+    $nginx->ensureDhparamInstalled();
+
     // apply ssl for static
     output("Adding certificate for {$static_url}...");
     $cli->run('certbot certonly -d ' . $static_url . '  --nginx --non-interactive --agree-tos -m '.$email);

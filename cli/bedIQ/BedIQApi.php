@@ -19,7 +19,7 @@ class BedIQApi
         $plugins = $this->bedIQAPIHelper->getPluginsFromServer();
 
         if (!$plugins) {
-            return $this->bedIQAPIHelper->getPluginsFromAPI();
+            return json_decode($this->bedIQAPIHelper->getPluginsFromAPI(), true);
         }
 
         return $plugins;
@@ -30,7 +30,7 @@ class BedIQApi
         $themes = $this->bedIQAPIHelper->getThemesFromServer();
 
         if (!$themes) {
-            return $this->bedIQAPIHelper->getThemesFromAPI();
+            return json_decode($this->bedIQAPIHelper->getThemesFromAPI(), true);
         }
 
         return $themes;

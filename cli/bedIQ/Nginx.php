@@ -117,6 +117,17 @@ class Nginx
     }
 
     /**
+     * These dhparam define how OpenSSL performs the Diffie-Hellman (DH) key-exchange.
+     */
+    public function ensureDhparamInstalled()
+    {
+        if (!file_exists('/etc/nginx/dhparam.pem')) {
+            $this->cli->run( 'openssl dhparam -out /etc/nginx/dhparam.pem 2048' );
+            output( 'dhparam added to /etc/nginx/dhparam.pem' );
+        }
+    }
+
+    /**
      * Remove domain from host entry
      *
      * @param  string $domain
