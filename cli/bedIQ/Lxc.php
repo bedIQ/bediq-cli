@@ -250,4 +250,17 @@ class Lxc
 
         return $domain;
     }
+
+    /**
+     * Mount host machine with container
+     * files from HOST: /root/base_extracted_files/ can be accessible in CONTAINER:: /root/base_extracted_files/
+     *
+     * @param $container
+     * @param string $shareAs
+     * @return string
+     */
+    public function mount($container, $shareAs = 'shared')
+    {
+        return $this->cli->run("lxc config device add {$container} {$shareAs } disk path=/root/base_extracted_files/ source=/`whoami`/base_extracted_files");
+    }
 }

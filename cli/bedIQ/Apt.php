@@ -120,6 +120,8 @@ class Apt
             $this->cli->quietly($prefix . 'apt-add-repository ppa:nginx/mainline -y');
             $this->cli->quietly($prefix . 'apt-get update');
             $this->cli->quietly($prefix . 'apt install -y nginx');
+
+            $this->cli->quietly($prefix . 'openssl dhparam -out /etc/nginx/dhparam.pem 2048');
         } else {
             warning("nginx already installed.");
         }

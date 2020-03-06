@@ -162,6 +162,7 @@ $app->command('provision:container container', function ($container) {
     output('Optimizing PHP...');
     $lxd->pushFile($container, BEDIQ_STUBS . '/php/php.ini', '/etc/php/7.3/fpm/conf.d/30-bediq');
     $lxd->restartService($container, 'php7.3-fpm');
+
 })->descriptions('Provision the LXD container');
 
 $app->command('site:create domain [--type=] [--title=] [--email=] [--username=] [--password=] [--site-key=] [--site-id=]', function ($domain, $type, $title, $email, $username, $password, $siteKey, $siteId) {
@@ -246,7 +247,9 @@ $app->command('site:create domain [--type=] [--title=] [--email=] [--username=] 
 
         $plugins    = $bediqApi->plugins();
 
-        $themes     = $bediqApi->themes();;
+        $themes     = $bediqApi->themes();
+
+        $lxd->mount($container);
 
         output('Downloading WordPress...');
         $wp->download($container, $path);
@@ -269,6 +272,12 @@ $app->command('site:create domain [--type=] [--title=] [--email=] [--username=] 
 
         output('Importing default data...');
         $wp->defaultDataImport($container, $path);
+
+        $wp->optionSet($container, $path, 'siteurl', 'http://'.$domain);
+        $wp->optionSet($container, $path, 'home', 'http://'.$domain);
+
+       // ensure all plugins are activated
+        $wp->activatePlugins($container, $path);
 
         $wp->changeOwner($container);
 
@@ -364,7 +373,7 @@ $app->command('db:export domain', function ($domain) {
 
 })->descriptions('Export database.');
 
-$app->command('site:ssl static_url wp_url', function ($static_url, $wp_url) {
+$app->command('site:ssl static_url wp_url email', function ($static_url, $wp_url, $email) {
     $cli   = new CommandLine();
     $file  = new Filesystem();
     $nginx = new Nginx($cli, $file);
@@ -373,14 +382,16 @@ $app->command('site:ssl static_url wp_url', function ($static_url, $wp_url) {
     $container = $lxd->nameByDomain($static_url);
     $ip = $lxd->getIp($container);
 
+    $nginx->ensureDhparamInstalled();
+
     // apply ssl for static
     output("Adding certificate for {$static_url}...");
-    $cli->run('certbot certonly -d ' . $static_url . '  --nginx');
+    $cli->run('certbot certonly -d ' . $static_url . '  --nginx --non-interactive --agree-tos -m '.$email);
     $nginx->applySSL($static_url);
 
     // apply ssl for staging
     output("Adding certificate for {$wp_url}...");
-    $cli->run('certbot certonly -d ' . $wp_url . '  --nginx');
+    $cli->run('certbot certonly -d ' . $wp_url . '  --nginx --non-interactive --agree-tos -m '.$email);
     $nginx->applySSL($wp_url, $ip);
 
     $nginx->reloadNginx();

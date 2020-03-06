@@ -102,6 +102,11 @@ EOF;
         return $this->exec($container, 'wp plugin install --activate ' . implode(' ', $plugins) . ' --allow-root --path=' . $path);
     }
 
+    public function activatePlugins($container, $path)
+    {
+        return $this->exec($container, 'wp plugin activate --all --allow-root --path='. $path);
+    }
+
     /**
      * @param $container
      * @param $path
@@ -125,6 +130,12 @@ EOF;
         $this->exec($container, 'wget https://storage.googleapis.com/bediq-backups/bediq-core/bediq.sql');
         return $this->exec($container, 'wp db import --allow-root bediq.sql --path=' . $path);
     }
+
+    public function optionSet($container, $path, $key, $value)
+    {
+        return $this->exec($container, 'wp option set '.$key.' '.$value.' --allow-root --path=' . $path);
+    }
+
 
 
     /**
